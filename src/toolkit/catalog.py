@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -141,26 +142,29 @@ def skill_dirs(root: Path) -> list[Path]:
     return sorted(p for p in root.iterdir() if p.is_dir()) if root.is_dir() else []
 
 
+def claude_dir(home: Path) -> Path:
+    """Claude Code が読む設定フォルダ。`CLAUDE_CONFIG_DIR` があればそれ、なければ `~/.claude`。"""
+    configured = os.environ.get("CLAUDE_CONFIG_DIR")
+    return Path(configured).expanduser() if configured else home / ".claude"
+
+
 def placements(repo: Path, home: Path, chosen: Selection) -> list[Placement]:
     config = repo / "config"
-    claude_settings = home / ".claude" / "settings.json"
+    claude = claude_dir(home)
+    claude_settings = claude / "settings.json"
     table: list[Placement] = []
     if "instructions" in chosen.components:
         agents = config / "shared" / "AGENTS.md"
-        table.append(Placement(agents, home / ".claude" / "CLAUDE.md", "link", "instructions"))
+        table.append(Placement(agents, claude / "CLAUDE.md", "link", "instructions"))
         table.append(Placement(agents, home / ".codex" / "AGENTS.md", "link", "instructions"))
     if "skills" in chosen.components:
         for skill in skill_dirs(config / "shared" / "skills"):
             table.append(
                 Placement(skill, home / ".agents" / "skills" / skill.name, "link", "skills")
             )
-            table.append(
-                Placement(skill, home / ".claude" / "skills" / skill.name, "link", "skills")
-            )
+            table.append(Placement(skill, claude / "skills" / skill.name, "link", "skills"))
         for skill in skill_dirs(config / "claude" / "skills"):
-            table.append(
-                Placement(skill, home / ".claude" / "skills" / skill.name, "link", "skills")
-            )
+            table.append(Placement(skill, claude / "skills" / skill.name, "link", "skills"))
     if "hooks" in chosen.components:
         table.append(
             Placement(config / "claude" / "hooks.json", claude_settings, "merge_json", "hooks")

@@ -110,6 +110,7 @@ agent-toolkit install --offline                          # ネットワーク取
 | --- | --- |
 | `UV` | uv の実行パス。`install.sh` と `doctor` が最初に見る。指定されていて実行できないときは、PATH へ進まず「uv が無い」扱い（`install.sh` は 10、`doctor` は 30） |
 | `HOME` | 配置先の基準。`install.sh` が見る `$HOME/.local/bin/mise`（PATH に uv が無いときの `mise which uv`）、`~/.dotbackup/`、`~/.claude` などもここから決まる |
+| `CLAUDE_CONFIG_DIR` | 指定されていれば、この README で `~/.claude` と書いた配置先と旧リンクの片付け先をすべてこのフォルダに置き換える。Claude Code が読む設定フォルダと揃えるため |
 
 uv の探し方（`install.sh`・`doctor` 共通）は `UV` → PATH の `uv` → `$HOME/.local/bin/mise which uv`。
 

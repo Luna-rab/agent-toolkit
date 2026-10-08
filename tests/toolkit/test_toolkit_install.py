@@ -41,8 +41,13 @@ def home(tmp_path) -> Path:
     return path
 
 
-def agent_toolkit(home: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    env = {**os.environ, "HOME": str(home)}
+def agent_toolkit(
+    home: Path, *args: str, claude_config_dir: Path | None = None
+) -> subprocess.CompletedProcess[str]:
+    env = {k: v for k, v in os.environ.items() if k != "CLAUDE_CONFIG_DIR"}
+    env["HOME"] = str(home)
+    if claude_config_dir is not None:
+        env["CLAUDE_CONFIG_DIR"] = str(claude_config_dir)
     return subprocess.run(
         [sys.executable, "-c", ENTRY, *args],
         env=env,
@@ -385,6 +390,27 @@ def test_removes_old_dist_links_but_keeps_other_links_and_directories(home):
     assert not (claude / "rules").is_symlink()
     assert os.readlink(claude / "hooks") == "/somewhere/else/hooks"
     assert (claude / "scripts" / "mine.sh").read_text() == "echo\n"
+
+
+def test_places_claude_files_under_claude_config_dir(home, tmp_path):
+    claude = tmp_path / "claude-config"
+    (claude / "skills").mkdir(parents=True)
+    (claude / "skills" / "autodev").symlink_to("/x/dotfiles/dist/dot-claude/skills/autodev")
+    (claude / "rules").symlink_to("/x/dotfiles/dist/dot-claude/rules")
+
+    result = agent_toolkit(home, "install", "--offline", claude_config_dir=claude)
+
+    assert result.returncode == 0, result.stderr
+    assert link_target(claude / "CLAUDE.md") == (CONFIG / "shared" / "AGENTS.md").resolve()
+    for name in SHARED_SKILLS:
+        source = (CONFIG / "shared" / "skills" / name).resolve()
+        assert link_target(claude / "skills" / name) == source
+    for name in CLAUDE_SKILLS:
+        source = (CONFIG / "claude" / "skills" / name).resolve()
+        assert link_target(claude / "skills" / name) == source
+    assert json.loads((claude / "settings.json").read_text()) == MAIN_SETTINGS
+    assert not (claude / "rules").is_symlink()
+    assert not (home / ".claude").exists()
 
 
 def test_links_existing_archify_even_offline(home):

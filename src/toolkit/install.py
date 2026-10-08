@@ -20,6 +20,7 @@ from pathlib import Path
 from toolkit.catalog import (
     Selection,
     add_selection_arguments,
+    claude_dir,
     placements,
     selection,
 )
@@ -152,9 +153,9 @@ def remove_dangling_skill_links(skills_dir: Path, repo: Path) -> None:
             print(f"remove dangling link {entry}")
 
 
-def remove_old_links(home: Path) -> None:
+def remove_old_links(claude: Path) -> None:
     for name in ("rules", "hooks", "scripts"):
-        path = home / ".claude" / name
+        path = claude / name
         if path.is_symlink() and OLD_DIST in os.readlink(path):
             path.unlink()
             print(f"remove old link {path}")
@@ -222,11 +223,12 @@ def run_install(repo: Path, home: Path, offline: bool, chosen: Selection) -> int
             print(f"agent-toolkit install: {label} に失敗: {exc}", file=sys.stderr)
 
     components = chosen.components
-    skills_dirs = (home / ".claude" / "skills", home / ".agents" / "skills")
+    claude = claude_dir(home)
+    skills_dirs = (claude / "skills", home / ".agents" / "skills")
     if components & {"skills", "extras"}:
         for skills in skills_dirs:
             step(f"{skills} の用意", lambda skills=skills: ensure_real_dir(skills))
-    step("旧リンクの移行", lambda: remove_old_links(home))
+    step("旧リンクの移行", lambda: remove_old_links(claude))
     merges: dict[Path, list[Path]] = {}
     for placement in placements(repo, home, chosen):
         if placement.method == "link":
@@ -246,7 +248,7 @@ def run_install(repo: Path, home: Path, offline: bool, chosen: Selection) -> int
         if archify.is_dir():
             step(
                 "archify のリンク",
-                lambda: link(archify, home / ".claude" / "skills" / "archify", home),
+                lambda: link(archify, claude / "skills" / "archify", home),
             )
     if "skills" in components:
         for skills in skills_dirs:
