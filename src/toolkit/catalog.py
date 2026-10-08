@@ -143,7 +143,7 @@ def skill_dirs(root: Path) -> list[Path]:
 
 
 def claude_dir(home: Path) -> Path:
-    """Claude Code が読む設定フォルダ。`CLAUDE_CONFIG_DIR` があればそれ、なければ `~/.claude`。"""
+    """Claude Code が読む設定フォルダ。"""
     configured = os.environ.get("CLAUDE_CONFIG_DIR")
     return Path(configured).expanduser() if configured else home / ".claude"
 
