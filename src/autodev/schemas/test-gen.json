@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["report", "reportReason", "unchanged", "awaitingExpectations", "notes"],
+  "properties": {
+    "report": { "enum": ["design-gap", "quick-check-failed", null] },
+    "reportReason": { "type": ["string", "null"], "minLength": 1 },
+    "unchanged": { "type": "boolean" },
+    "awaitingExpectations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["test", "command"],
+        "properties": {
+          "test": { "type": "string", "minLength": 1 },
+          "command": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "notes": { "type": "string" }
+  }
+}

@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>autodev のドメイン</title>
+<style>
+:root {
+  --bg: #fbfaf7;
+  --fg: #1f2328;
+  --muted: #59636e;
+  --line: #d8dee4;
+  --panel: #f1efe9;
+  --accent: #0a5cad;
+  --accent-soft: #dce8f5;
+  --code-bg: #ebe8e1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15181c;
+    --fg: #e6e8eb;
+    --muted: #9aa4af;
+    --line: #333a42;
+    --panel: #1d2127;
+    --accent: #6cb6ff;
+    --accent-soft: #1c3049;
+    --code-bg: #262b32;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15181c;
+  --fg: #e6e8eb;
+  --muted: #9aa4af;
+  --line: #333a42;
+  --panel: #1d2127;
+  --accent: #6cb6ff;
+  --accent-soft: #1c3049;
+  --code-bg: #262b32;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.85;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 2.5rem;
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+nav {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 2rem 0;
+  font-size: 0.9rem;
+}
+nav p { margin: 0 0 0.5rem; font-weight: 700; }
+nav ol { margin: 0; padding-left: 1.4rem; }
+nav li { margin: 0.25rem 0; }
+nav a { color: var(--muted); text-decoration: none; }
+nav a:hover { color: var(--accent); }
+main { padding: 2rem 0 5rem; min-width: 0; }
+p, li, dd { text-align: justify; line-break: strict; }
+h1 { font-size: 1.9rem; line-height: 1.4; margin: 0 0 0.5rem; }
+h2 {
+  font-size: 1.4rem;
+  margin: 3.5rem 0 1rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--line);
+}
+h3 { font-size: 1.1rem; margin: 2rem 0 0.5rem; }
+a { color: var(--accent); }
+code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.86em;
+  background: var(--code-bg);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.lead { color: var(--muted); }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+th, td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: var(--panel); font-weight: 700; }
+/* 長いパスやコマンド名が、狭い画面で表の列を押し広げないようにする */
+td code, dd code { overflow-wrap: anywhere; }
+.table-wrap { overflow-x: auto; }
+figure {
+  margin: 1.25rem 0 1.75rem;
+  padding: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+.aggregate {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  margin: 2.25rem 0;
+}
+.aggregate h3 { margin-top: 0; }
+dl.io { display: grid; grid-template-columns: max-content 1fr; gap: 0.2rem 1rem; }
+dl.io dt { font-weight: 700; color: var(--muted); }
+dl.io dd { margin: 0; }
+
+/* ---- 図 ----
+   箱は .n、点線の枠で囲む入れ物は .box。矢印は .e で、中の i が線、i の ::before と ::after が矢じり。
+   向きは d（下）・u（上）・du（上下）・r（右）・l（左）。並べ方は図ごとに grid の位置で決める。
+   figure は横に流せるので、狭い画面で図が収まらなくてもページは横にはみ出さない */
+.g {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  width: max-content;
+  margin: 0 auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.v {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: max-content;
+  margin: 0 auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.v > .e { align-self: stretch; }
+.n {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--muted);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  text-align: center;
+}
+.n small { display: block; color: var(--muted); font-size: 0.76rem; }
+.n.key { border: 2px solid var(--accent); }
+.n.wide { justify-self: stretch; }
+.box {
+  border: 1px dashed var(--muted);
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem 0.7rem;
+  justify-self: stretch;
+}
+.box.key { border: 2px solid var(--accent); }
+.box-t { font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 0.4rem; }
+.box .row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+.e { color: var(--muted); font-size: 0.76rem; line-height: 1.4; text-align: center; }
+/* 矢印の説明は語の途中で折らない。改行は <br> で、区切りの「・」か語と語の間に入れる */
+.e > span { white-space: nowrap; }
+.e > i { display: block; position: relative; border: 0 solid currentColor; }
+.e.dash > i { border-style: dashed; }
+.e.d, .e.u, .e.du {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  column-gap: 0.5rem;
+  justify-self: stretch;
+  padding: 0.1rem 0;
+}
+.e.d > i, .e.u > i, .e.du > i { grid-column: 2; grid-row: 1; width: 0; height: 2rem; border-left-width: 2px; }
+.e.d > span, .e.u > span, .e.du > span { grid-column: 3; grid-row: 1; justify-self: start; text-align: left; }
+/* 縦の矢印の説明が長いときは、線を真ん中に置かず説明の左に寄せる */
+.e.side { display: flex; justify-content: center; gap: 0.5rem; }
+.e.long { align-self: stretch; }
+.e.long > i { height: auto; align-self: stretch; }
+.e.d > i::after, .e.du > i::after {
+  content: ""; position: absolute; left: -6px; bottom: -1px;
+  border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 8px solid currentColor;
+}
+.e.u > i::before, .e.du > i::before {
+  content: ""; position: absolute; left: -6px; top: -1px;
+  border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid currentColor;
+}
+.e.r, .e.l {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-self: stretch;
+  min-width: 3rem;
+  padding: 0 0.35rem;
+}
+.e.r > i, .e.l > i { height: 0; border-top-width: 2px; margin: 0.35rem 0; }
+.e.r > i::after {
+  content: ""; position: absolute; right: -1px; top: -6px;
+  border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid currentColor;
+}
+.e.l > i::before {
+  content: ""; position: absolute; left: -1px; top: -6px;
+  border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 8px solid currentColor;
+}
+/* 横に並べる流れ。幅 640px 以下では縦に並べ直し、右向きの矢印を下向きにする */
+.hf { display: flex; align-items: center; justify-content: center; font-size: 0.85rem; line-height: 1.5; }
+.hf > .e { flex: 1 1 5rem; max-width: 11rem; }
+@media (max-width: 640px) {
+  .hf { flex-direction: column; }
+  .hf > .e.r {
+    flex: none; max-width: none; align-self: stretch;
+    display: grid; grid-template-columns: 1fr auto 1fr; column-gap: 0.5rem; padding: 0.1rem 0;
+  }
+  .hf > .e.r > i { grid-column: 2; grid-row: 1; width: 0; height: 2rem; margin: 0; border-top-width: 0; border-left-width: 2px; }
+  .hf > .e.r > span { grid-column: 3; grid-row: 1; justify-self: start; text-align: left; }
+  .hf > .e.r > i::after {
+    right: auto; top: auto; left: -6px; bottom: -1px;
+    border-top: 8px solid currentColor; border-bottom: 0;
+    border-left: 5px solid transparent; border-right: 5px solid transparent;
+  }
+}
+
+/* 状態の札と、遷移の表 */
+.states { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+.chip {
+  display: inline-block;
+  padding: 0.05rem 0.6rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--fg);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.chip small { color: var(--muted); font-size: 0.76rem; margin-left: 0.25em; }
+/* 終端は塗りを反転させ、外側にもう 1 本の輪を付ける */
+.chip.end {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 3.5px var(--fg);
+}
+.chip.end small { color: var(--bg); opacity: 0.8; }
+.chip.start { background: transparent; border: 1px dashed var(--muted); color: var(--muted); }
+.legend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1.2rem;
+  margin-top: 0.7rem; font-size: 0.78rem; color: var(--muted);
+}
+.legend .chip { margin-right: 0.35rem; }
+table.tr { margin: 0.9rem 0 0; font-size: 0.85rem; }
+table.tr th { background: transparent; color: var(--muted); font-size: 0.8rem; }
+table.tr td { padding: 0.4rem 0.45rem; }
+table.tr td:nth-child(-n+3) { width: 1%; }
+table.tr td:nth-child(2) { color: var(--muted); text-align: center; }
+table.tr .chip { margin: 0.12rem 0.1rem; }
+table.tr td:nth-child(4) { overflow-wrap: anywhere; }
+/* 狭い画面では 1 行を「元 → 先」と、その下の「きっかけ」の 2 段に組み替え、きっかけに全幅を渡す */
+@media (max-width: 640px) {
+  table.tr, table.tr tbody { display: block; }
+  table.tr thead { display: none; }
+  table.tr tr {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    column-gap: 0.4rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  table.tr td { width: auto; padding: 0; border: 0; }
+  table.tr td:nth-child(4) { grid-column: 1 / -1; padding-top: 0.25rem; }
+}
+
+/* 1 回のランのシーケンス図。参加者 1 人が 2 列を持ち、矢印は送り手の列の中心から受け手の列の中心まで引く */
+.seq {
+  display: grid;
+  grid-template-columns: 1.8rem repeat(16, minmax(3.2rem, 1fr));
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.seq .p {
+  z-index: 1;
+  margin: 0 0.1rem 0.2rem;
+  padding: 0.35rem 0.1rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  background: var(--bg);
+  border: 1px solid var(--muted);
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 700;
+}
+.seq .life { background: linear-gradient(var(--line), var(--line)) center / 2px 100% no-repeat; }
+.seq .sn { grid-column: 1; align-self: end; padding: 0 0.35rem 0.1rem 0; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.seq .m { z-index: 1; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 0.5rem; text-align: center; min-width: 0; }
+/* 説明は矢印の幅に縛らず 1 行で書き、矢印の中央から左右へはみ出させる。長いものだけ <br> で 2 行にする */
+.seq .m > span { align-self: center; padding: 0 0.3rem; background: var(--panel); white-space: nowrap; }
+.seq .m > i { display: block; position: relative; height: 0; margin-top: 0.2rem; border-top: 2px dashed var(--muted); }
+.seq .m.solid > i { border-top-style: solid; }
+.seq .m > i::after {
+  content: ""; position: absolute; right: -1px; top: -6px;
+  border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid var(--muted);
+}
+.seq .m.to-l > i::after { right: auto; left: -1px; border-left: 0; border-right: 8px solid var(--muted); }
+.seq .note {
+  z-index: 1;
+  grid-column: 2 / -1;
+  margin: 0.55rem 0 0.1rem;
+  padding: 0.3rem 0.7rem;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+.seq .note b { margin-right: 0.5em; }
+
+/* ドメインサービスを呼ぶ側と、呼ばれるサービス */
+.calls {
+  display: grid;
+  grid-template-columns: minmax(6rem, max-content) 3rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.calls > .h { grid-column: 1 / -1; margin-top: 0.3rem; font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+.calls > .n { justify-self: stretch; max-width: 14rem; }
+.calls .to { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+@media (max-width: 640px) {
+  .calls { grid-template-columns: minmax(0, 8rem) 2.5rem minmax(0, 1fr); }
+}
+
+/* 値オブジェクトの分類 */
+.vo { padding: 0.5rem 0.7rem 0.7rem; background: var(--bg); border: 1px solid var(--muted); border-radius: 8px; }
+.vo-g { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.6rem; }
+.vo-c { padding: 0.45rem 0.6rem 0.6rem; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 0.85rem; }
+.vo-c .box-t { color: var(--fg); }
+.vo-c code { display: inline-block; margin: 0.15rem 0.1rem; }
+
+/* インラインの SVG。文字が読める大きさを保つため、狭い画面では縮めずに figure の中で横に流す */
+.sv { display: block; width: 100%; min-width: 44rem; max-width: 52rem; height: auto; margin: 0 auto; color: var(--fg); }
+.sv .nd { fill: var(--bg); stroke: var(--muted); stroke-width: 1; }
+.sv .nd.key { stroke: var(--accent); stroke-width: 2; }
+.sv .ln { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.sv .ah { fill: var(--muted); }
+.sv text { fill: currentColor; font-size: 13px; }
+.sv .sub, .sv .lb { fill: var(--muted); font-size: 12px; }
+
+@media (max-width: 860px) {
+  .layout { display: block; }
+  nav {
+    position: static;
+    max-height: none;
+    padding: 1.25rem 0 0.75rem;
+    border-bottom: 1px solid var(--line);
+  }
+  main { padding-top: 1.25rem; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav aria-label="目次">
+  <p>目次</p>
+  <ol>
+    <li><a href="#problem">autodev が解く問題</a></li>
+    <li><a href="#language">ユビキタス言語</a></li>
+    <li><a href="#layers">層とコンテキスト</a></li>
+    <li><a href="#aggregates">集約</a></li>
+    <li><a href="#events">ドメインイベントとポリシー</a></li>
+    <li><a href="#escalation">エスカレーション</a></li>
+    <li><a href="#services">ドメインサービス</a></li>
+    <li><a href="#values">値オブジェクト</a></li>
+    <li><a href="#sourcing">イベントソーシング</a></li>
+  </ol>
+</nav>
+
+<main>
+<header>
+  <h1>autodev のドメイン</h1>
+  <p class="lead">このページは、autodev が何を決め、どんな規則で状態を変えるかを、DDD（ドメイン駆動設計）の用語で説明する。ドメインのコードは <code>src/autodev/domain/</code> にある。autodev の使い方は <a href="README.md">README.md</a> に書いてある。</p>
+</header>
+
+<section id="problem">
+<h2>1. autodev が解く問題</h2>
+<p>autodev は、ユーザーから指示を 1 つ受け取り、計画、テスト、実装、レビューを経て、GitHub に stacked PR を作るところまでを、人が見ていなくても進める。stacked PR とは、ある PR のブランチを base にして次の PR を作り、PR を下から順に重ねたものである。autodev は PR をマージしない。ユーザーが、autodev の作った PR をレビューし、一番下の PR から順にマージする。</p>
+<p>autodev は次の部品で動く。ランとタスクは 2 章で定義する。</p>
+<ul>
+  <li>driver は Python のプロセスで、イベントを記録し、ステージと統括を起動する。イベントは、状態が変わったことを表す記録である（4 章）</li>
+  <li>ステージは、タスクの中の 1 つの手順である。ステージは、LLM を 1 回呼び出す（<code>claude -p</code> を 1 回実行する）か、LLM を使わない決まった処理（git を操作する処理や、検証コマンドを動かす処理など）を 1 回実行する</li>
+  <li>統括（Supervisor）は、ドメインの規則では決められないことを判断する LLM またはプログラムである。ラン統括はラン全体を、タスク統括はタスク 1 つを受け持つ</li>
+  <li>ドメインは、autodev の状態と、状態を変えるときに守る規則をまとめたコードである</li>
+</ul>
+<p>人が見ていない間も PR の作成を進めるために、ドメインは次の 3 つを規則で決める。</p>
+<ul>
+  <li>次にどのステージを実行するか。また、ステージの結果を合格とするかどうか</li>
+  <li>ステージや統括が解決できない問題に当たったとき、誰に判断を尋ねるか。問題の例は、ステージが 2 回続けて失敗したことや、ステージが設計の穴を報告したことである。autodev は、問題を受け手に送って判断を求めることをエスカレーションと呼ぶ。受け手は、タスク統括、ラン統括、/autodev、ユーザーである（6 章）</li>
+  <li>同じ修正や再計画を繰り返すとき、何回目で止めるか。ドメインは、修正の回数、設計のラウンドの数、再計画の回数に上限を設けている</li>
+</ul>
+
+<figure>
+<div class="v">
+  <div class="n">ユーザー</div>
+  <div class="e du"><i></i><span>指示・質問・回答</span></div>
+  <div class="n">/autodev<small>スキル</small></div>
+  <div class="e du"><i></i><span>run・answer・status</span></div>
+  <div class="box">
+    <div class="box-t">driver（Python のプロセス）</div>
+    <div class="g" style="grid-template-columns: 1fr 1fr; column-gap: 1rem; width: auto;">
+      <div class="n wide">ラン統括<small>LLM</small></div>
+      <div class="n wide">タスク統括<small>実装タスクは LLM</small></div>
+      <div class="e d"><i></i><span>判断</span></div>
+      <div class="e d"><i></i><span>判断</span></div>
+      <div class="n key wide" style="grid-column: 1 / 3;">ドメイン<small>規則・状態・合否</small></div>
+    </div>
+  </div>
+  <div class="g" style="grid-template-columns: 1fr 1fr; column-gap: 1rem; width: 100%;">
+    <div class="e d"><i></i><span>このステージを実行する</span></div>
+    <div class="e u"><i></i><span>結果と証拠</span></div>
+  </div>
+  <div class="n">ステージ<small>claude -p を 1 回か、決まった処理を 1 回</small></div>
+</div>
+<figcaption>判断の流れを示す。統括が下した判断がドメインの規則に合わない場合は、集約（4 章）がその判断を受け付けない。</figcaption>
+</figure>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>担い手</th><th>決めること</th><th>決めないこと</th></tr></thead>
+<tbody>
+<tr><td>ユーザー</td><td>ユーザーは質問に答える。また、autodev が作った PR をレビューしてマージする。</td><td>ユーザーは、次にどのステージを実行するかなどの進め方を決めない。</td></tr>
+<tr><td>/autodev</td><td>/autodev スキルは driver を起動する。driver が出した質問をユーザーに渡し、ユーザーの回答を driver に届ける。</td><td>/autodev は質問に自分で答えない。ステージで何をするかも決めない。</td></tr>
+<tr><td>driver</td><td>driver はイベントを記録する。また、ドメインが返したステージと統括を起動する。</td><td>driver は、進め方とステージの合否を自分では決めない。driver はドメインの関数を呼び、その結果に従う。</td></tr>
+<tr><td>ドメイン</td><td>ドメインは、次に実行するステージ、ステージの合否、状態の遷移、エスカレーションの受け手を決める。</td><td>規則で決められない判断は、統括が下す。ドメインの <code>wake_for</code> が起動する統括を返し、driver がその統括を起動して判断を求める。</td></tr>
+<tr><td>統括</td><td>統括は、フローの組み方と、再計画するかどうかと、エスカレーションにどう答えるかを決める。</td><td>統括は、規則に反することを決められない。統括の判断が規則に反する場合、集約はその判断を受け付けない。driver が、受け付けなかった理由を添えて、統括に判断を返し直させる。</td></tr>
+<tr><td>ステージ</td><td>ステージは、タスクの中の 1 つの手順を行う。例: 設計を書く、テストを書く、レビューする、push する。</td><td>ステージは次に何をするかを決めない。</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="language">
+<h2>2. ユビキタス言語</h2>
+<p>ユビキタス言語とは、開発者が話すときも、コードやログを書くときも、同じ意味で使う用語の集まりである。autodev のユビキタス言語は、次の表の用語である。autodev のコードとログも、この表の用語を使う。表の括弧の中は、コードでの名前である。</p>
+
+<figure>
+<div class="g" style="grid-template-columns: auto 3rem auto 10rem auto;">
+  <div class="n" style="grid-area: 1 / 1 / 10 / 2; align-self: stretch; display: flex; align-items: center;">ラン</div>
+  <div class="e r" style="grid-area: 1 / 2;"><i></i></div>
+  <div class="n wide" style="grid-area: 1 / 3;">計画タスク</div>
+  <div class="e d side" style="grid-area: 2 / 3;"><i></i><span>提案を確定</span></div>
+  <div class="n wide" style="grid-area: 3 / 3;">設計</div>
+  <div class="e d side" style="grid-area: 4 / 3;"><i></i><span>計画を反映</span></div>
+  <div class="e r" style="grid-area: 5 / 2;"><i></i></div>
+  <div class="n wide" style="grid-area: 5 / 3;">実装タスク ×N</div>
+  <div class="e r" style="grid-area: 5 / 4;"><span>フロー（ステージの並び）</span><i></i></div>
+  <div class="n wide" style="grid-area: 5 / 5;">ステージ</div>
+  <div class="e d side" style="grid-area: 6 / 5;"><i></i><span>指摘</span></div>
+  <div class="n wide" style="grid-area: 7 / 5;">ReviewLedger</div>
+  <div class="e d side" style="grid-area: 6 / 3;"><i></i><span>Gate に合格したら GitJob のキューへ</span></div>
+  <div class="e r" style="grid-area: 7 / 2;"><i></i></div>
+  <div class="n wide" style="grid-area: 7 / 3;">git 管理タスク</div>
+  <div class="e d side" style="grid-area: 8 / 3;"><i></i><span>スタックに追加</span></div>
+  <div class="n wide" style="grid-area: 9 / 3;">スタック<small>一番下が概要 PR</small></div>
+</div>
+<figcaption>主な用語どうしの関係を示す。</figcaption>
+</figure>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>用語</th><th>意味</th></tr></thead>
+<tbody>
+<tr><td>ラン（Run）</td><td>ランは、1 つの指示について、autodev が計画からすべての PR のスタックへの追加までを進める、1 回分のまとまりである。ランは名前を持つ。autodev は、ランの記録を既定で <code>~/.local/state/autodev/&lt;ラン名&gt;/</code> に保存する。環境変数 <code>AUTODEV_STATE_DIR</code> か <code>XDG_STATE_HOME</code> を設定すると、保存場所が変わる。</td></tr>
+<tr><td>タスク（Task）</td><td>タスクは、ランを分けた単位である。タスクは、それぞれがフロー（ステージの並び）を持つ。タスクには次の 3 種類がある。</td></tr>
+<tr><td>計画タスク（<code>planning</code>）</td><td>計画タスクのステージは、受入条件と設計と実装タスクの一覧を書く。1 つのランには計画タスクが 1 つある。</td></tr>
+<tr><td>実装タスク（<code>task&lt;番号&gt;</code>）</td><td>実装タスクは、PR 1 本分の変更を作る。running の実装タスクと escalated（回答待ち）の実装タスクの数は、合わせて既定で 3 つまでである。</td></tr>
+<tr><td>git 管理タスク（<code>git</code>）</td><td>git 管理タスクは、GitJob を 1 つずつ処理する。GitJob の例は、ブランチの作成、スタックへの PR の追加、概要 PR の作成である。1 つのランには git 管理タスクが 1 つある。</td></tr>
+<tr><td>ステージ（Stage）</td><td>ステージは、タスクの中の 1 つの手順である（1 章）。ステージの例は Plan、TestGen、Impl、Review、Gate、Push である。</td></tr>
+<tr><td>フロー（Flow）</td><td>フローは、タスク統括が組むステージの並びである。cursor は、フローの中で、Task が次に実行するステージの位置を指す値である。ドメインの FlowValidator は、フローを実行する前に検査する。Task は、規則に合わないフローを受け付けない。</td></tr>
+<tr><td>実行（Execution）</td><td>実行は、Task がステージを 1 回起動するごとに作る記録である。ステージが失敗してやり直すときは、Task は新しい実行を作る。</td></tr>
+<tr><td>成果物（Artifact）</td><td>成果物は、ステージが作り、後のステージが使うものである。成果物の例は、設計（design）、テスト（tests）、実装（impl）、レビュー済みであること（reviewed）、完了チェックに合格したこと（gated）、PR 本文（pr-body）である。</td></tr>
+<tr><td>指摘（Finding）</td><td>指摘は、レビューで見つかった問題 1 件である。指摘は重み（must-fix、should-fix、nit）と状態を持つ。指摘の id は、レビューの指摘なら <code>R&lt;番号&gt;</code>、完了チェックの指摘なら <code>G-&lt;項目&gt;</code>、設計の指摘なら <code>D&lt;番号&gt;</code> である。</td></tr>
+<tr><td>ReviewLedger</td><td>ReviewLedger は、1 つのタスクまたは設計について、すべての指摘を記録する集約である（4 章）。</td></tr>
+<tr><td>ジャッジ（Judge・DesignJudge）</td><td>ジャッジは、指摘ごとに、指摘が直ったか（closed）と、指摘が妥当でないか（rejected）を判定するステージである。ReviewLedger は、その指摘を判定すると決まっているステージの結果を受け取ったときに限り、指摘の状態を変える（4 章）。</td></tr>
+<tr><td>合成ステージ・ラウンド</td><td>合成ステージは、複数のステージを組み合わせたステージで、ReviewLoop と DesignLoop の 2 つがある。合成ステージの 1 ラウンドでは、まずレビューするステージ（Review や DesignReview）を並列に実行し、次にジャッジが指摘を判定し、最後に修正するステージ（Fix・TestFix や Revise）を実行する。ReviewLoop の指摘は宛先（supervisor・tests・impl）を持ち、ジャッジの判定の後、宛先で行き先が決まる。supervisor があればタスク統括へ supervisor-finding で上げて回答を待ち、tests があれば TestFix（テストだけを書く）、impl があれば Fix を、この順に同じラウンドで実行する。指摘が残っている間、Task は次のラウンドを始める。</td></tr>
+<tr><td>統括（Supervisor）</td><td>統括は、規則で決められないことを判断する。統括には 2 種類ある。ラン統括は LLM で、1 つのランに 1 つある。タスク統括はタスクごとに 1 つある。実装タスクのタスク統括は LLM である。計画タスクと git 管理タスクのタスク統括は、決まった並びのフローを組むプログラムである。</td></tr>
+<tr><td>モデルのクラス（ModelClass）</td><td>モデルのクラスは、LLM のステージと統括が claude に渡すモデルと effort を決める区分で、役割ごとに lead、review、implement、write の 4 つがある。レビューを別のクラスに分けているので、レビューにだけ別のモデルを当てられる。どのステージと統括がどのクラスかはドメインが固定する（lead はラン統括・タスク統括と Plan・Replan・Revise・DesignJudge・Judge、review は DesignReview・Review・AdversarialReview、implement は TestGen・TestFix・Impl・Fix・Expect・ResolveConflict、write は WritePrBody・WriteOverview）。ジャッジはレビューの指摘を裁くので、review ではなく lead に置く。クラスごとのモデルと effort の既定は lead が opus/high、review が opus/medium、implement と write が sonnet/medium で、利用者は <code>~/.config/autodev/models.json</code> で変えられる。autodev は新しいランを始めるときに 1 回だけ設定を読み、<code>RunStarted</code> に記録する。呼び直したランは記録した値を使い続ける。</td></tr>
+<tr><td>エスカレーション</td><td>エスカレーションは、ステージや統括が解決できない問題を、受け手に送って判断を求めることである。受け手は、タスク統括、ラン統括、/autodev、ユーザーの順に並ぶ（6 章）。ステージで起きた問題は Task が送る。エスカレーションは種類（EscalationKind）を持つ。種類の例は、stall（指摘の停滞）、supervisor-finding（宛先が supervisor の指摘）、design-gap（設計の穴）、gate-unfixable（完了チェックで、コードを直しても解決しない不合格）である。</td></tr>
+<tr><td>停滞（Stall）</td><td>停滞は、その指摘の宛先の修正するステージ（宛先が impl なら Fix、tests なら TestFix）が 2 回完了した後も open のまま残っている指摘を指す。Task は、停滞した指摘を stall という種類のエスカレーションとして送る。</td></tr>
+<tr><td>完了チェック（Gate）</td><td>完了チェックは、実装タスクをスタックに追加する前に行う検査である。検査する項目の例は、コミットがあること、open の指摘が無いこと、テストを書き換えていないこと、タスクのテストと軽い検査が成功することである。</td></tr>
+<tr><td>検証コマンドの種類</td><td>検証コマンドは 3 種類に分かれ、種類ごとに流す時点が違う。タスクのテスト（<code>taskTests</code>）はそのタスクのテストで、ConfirmRed と Gate が流す。軽い検査（<code>quickChecks</code>）は lint や型検査のように速く、どのタスクを積んだ時点でも通るもので、TestGen の前後・ConfirmRed・Gate・統合検査が流す。TestGen を差し戻すかどうかは、終わった後に落ちたコマンドが始める前（baseline）から落ちていたかで決まる。回帰テスト（<code>regressionTests</code>）はテスト全体のように遅く、ほかの場所を壊していないかを確かめるもので、統合検査だけが流す。</td></tr>
+<tr><td>統合検査（IntegrationCheck）</td><td>統合検査は、タスクをスタックに積む前に、スタックの一番上で軽い検査と回帰テストを流すステージである。</td></tr>
+<tr><td>提案・設計・設計の改訂番号</td><td>提案は、計画のステージ（Plan、Replan、Revise）が返す、確定する前の設計の案である。DesignLoop で Design 集約が提案を確定すると、その提案は設計になる。設計の本文は <code>design/v&lt;改訂番号&gt;.md</code> に保存する。改訂番号（DesignVersion）は設計ファイルの番号で、新しい設計ファイルは前のファイルより大きい改訂番号を持つ。古い改訂番号のファイルは削除しない。</td></tr>
+<tr><td>計画の反映・再計画</td><td>計画の反映は、確定した設計にあるタスクの一覧を Run に登録することである。再計画は、ランの途中で計画を書き直すことである。再計画のステージ（Replan）は、止めるタスクと破棄するタスクも提案する。</td></tr>
+<tr><td>スタック（Stack）</td><td>スタックは、下から順に重ねた PR の列である。一番下の PR は概要 PR である。git 管理タスクは、新しい PR を必ず一番上に追加する。</td></tr>
+<tr><td>概要 PR</td><td>概要 PR は、ランのまとめと判断の記録を載せる PR である。概要 PR の base は、ランの base ブランチである。git 管理タスクは、概要 PR を draft で作る。ランが終わったときに、ラン統括が draft を外すと決めた場合に限り、仕上げの GitJob が概要 PR の draft を解除する。</td></tr>
+<tr><td>GitJob</td><td>GitJob は、git 管理タスクが行う git と GitHub の操作 1 つを表す。GitJob の種類には、ブランチの作成、概要 PR の作成、スタックへの追加、破棄、仕上げなどがある。仕上げは、ランが終わったときに概要 PR のまとめを書き、ラン統括が決めた場合は概要 PR の draft を解除する GitJob である。すべての GitJob は 1 つのキューに並ぶ。</td></tr>
+<tr><td>破棄・追加し直し</td><td>破棄は、スタックに追加済みのタスクを、再計画によってスタックから外すことである。破棄したタスクより上にあったタスクは、git 管理タスクが新しいブランチ名でスタックに追加し直す。</td></tr>
+<tr><td>統合の失敗・引き継ぎ</td><td>統合の失敗は、git 管理タスクがタスクのブランチを rebase したときに衝突が起き、両方のブランチの変更を残す形で衝突を解決できなかったことを指す。統合に失敗すると、git 管理タスクは integration-failed という種類のエスカレーションを送る。引き継ぎは、ラン統括が新しいタスクを差し込み、その新しいタスクが ResolveConflict のステージで衝突を解決し直すことを指す。統合に失敗した元のタスクの状態は superseded になる。</td></tr>
+<tr><td>質問・回答</td><td>質問は、ラン統括が /autodev を通してユーザーに尋ねることである。ラン統括は、1 つのエスカレーションをもとに質問を出す。ユーザーの回答は Run が記録し、ラン統括がその回答を添えてエスカレーションに答える。Run は、1 つの回答を 2 回使うコマンドと、質問のもとになったエスカレーション以外に回答を使うコマンドを受け付けない。</td></tr>
+<tr><td>ランの段階（RunPhase）</td><td>RunPhase は、ランが今どの段階にあるかを表す。値は not-started、planning、running、panicked、finishing、finished の 6 つである。<code>status --json</code> は RunPhase を出力する。</td></tr>
+<tr><td>パニック</td><td>パニックは、Claude の利用枠の上限に達したか、driver が停止のシグナル（SIGTERM、SIGINT）を受け取ったことを指す。パニックの後は、driver をもう一度起動するまで、autodev は新しいタスクを始めない。</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="layers">
+<h2>3. 層とコンテキスト</h2>
+<p>autodev のコードは、app、infra、adapters、domain の 4 つの層に分かれている。外側の層は domain を import するが、domain は外側の層を import しない。また、domain は I/O（ファイル、プロセス、ネットワークの読み書き）を行わない。<code>test/autodev/test_layers.py</code> は、domain がこの 2 つの決まりを守っているかをテストする。</p>
+
+<figure>
+<div class="g" style="grid-template-columns: minmax(8rem, auto) 4rem minmax(8rem, auto) 2.5rem;">
+  <div class="box" style="grid-area: 1 / 1 / 2 / 5;">
+    <div class="box-t">app</div>
+    <div class="row">
+      <div class="n">driving<small>メインループ・反応</small></div>
+      <div class="n">stages<small>ステージの実行器</small></div>
+      <div class="n">supervision<small>LLM 統括の起動</small></div>
+    </div>
+  </div>
+  <div class="e d" style="grid-area: 2 / 1;"><i></i></div>
+  <div class="e d" style="grid-area: 2 / 3;"><i></i></div>
+  <div class="e d long" style="grid-area: 2 / 4 / 5 / 5;"><i></i></div>
+  <div class="box" style="grid-area: 3 / 1;">
+    <div class="box-t">infra</div>
+    <div class="n">イベントストア events.db<small>requests・status --json</small></div>
+  </div>
+  <div class="e r dash" style="grid-area: 3 / 2;"><span>注</span><i></i></div>
+  <div class="box" style="grid-area: 3 / 3;">
+    <div class="box-t">adapters</div>
+    <div class="n">claude -p・git・gh<small>サブプロセス・ガードのフック</small></div>
+  </div>
+  <div class="e d" style="grid-area: 4 / 1;"><i></i></div>
+  <div class="e d" style="grid-area: 4 / 3;"><i></i></div>
+  <div class="box key" style="grid-area: 5 / 1 / 6 / 5;">
+    <div class="box-t">domain</div>
+    <div class="row">
+      <div class="n">集約・コマンド・イベント<small>ポリシー・ドメインサービス・値オブジェクト</small></div>
+    </div>
+  </div>
+</div>
+<figcaption>層どうしの依存の向きを示す。矢印は、矢印の始点の層が終点の層を import することを表す。点線の「注」の矢印は例外を表す。status --json は、前回の driver の子プロセスがまだ動いているかを確かめるために、infra から adapters を 1 か所だけ使う。</figcaption>
+</figure>
+
+<p><strong>開発者は、ビジネスロジック（何をしてよいか、次に何をするかを決める規則）を domain の層にだけ書く。</strong>ほかの層のコードは、判断が必要な場面でドメインの関数を呼び、返った結果のとおりに処理を実行する。</p>
+<ul>
+  <li>app のメインループは、ポリシーと反応を、イベントを受け取る関数として登録する。メインループは、driver が記録したイベントをそれらの関数に配る。どのイベントからどのコマンドを作るかは、ドメインのポリシーが決める</li>
+  <li>反応（reaction）は、イベントの中身に従って I/O を実行する app の関数である。I/O には、ファイルの書き込み、ステージの起動、統括の起動がある。反応を実行するかどうかと、何を実行するかは、ドメインがイベントを返した時点で決めている。たとえば、統括を起動するかは <code>wake_for</code> が決め、ask で止まったステージの続きは <code>policies/registry.py</code> の <code>FOLLOW_UPS</code> が決める</li>
+  <li>ステージの実行器（app の層にある）は、ステージを起動し、終わるまで待つコードである。実行器は、証拠（ステージの終了の仕方、HEAD、ステージが作ったファイル、検証の結果）を集めて Task に渡す。Task が、その証拠をもとに、ステージの結果を完了、失敗、エスカレーションのどれにするかを決める</li>
+  <li>adapters は、外部の仕組み（<code>claude -p</code>、git、gh）から得た事実を返す。adapters は、処理を許すか止めるかを決めない。たとえば、ガードのフック（adapters の層にある）は、LLM のステージがファイルを書き込もうとするたびや、コマンドを動かそうとするたびに、Claude Code が呼び出す PreToolUse フックである。ガードのフックは、書き込むファイルのパスがどの場所（WriteZone）に当たるかを調べ、その結果をドメインのガードの規則に渡す。書き込んでよいかどうかは、ガードの規則が決める</li>
+</ul>
+</section>
+
+<section id="aggregates">
+<h2>4. 集約</h2>
+<dl class="io">
+  <dt>集約</dt><dd>集約は、関係するデータと、そのデータを変えるときに守る規則をまとめた単位である。集約の外のコードが集約の状態を変えるときは、必ず集約にコマンドを送る</dd>
+  <dt>コマンド</dt><dd>コマンドは、集約に「この操作をしてほしい」と依頼するメッセージである。集約は、handle というメソッドでコマンドを検査し、イベントを返す。コマンドが規則に合わない場合、集約はそのコマンドを受け付けない</dd>
+  <dt>イベント</dt><dd>イベント（ドメインイベント）は、集約がコマンドを処理した結果を表す「起きたこと」である。集約の handle がイベントを返し、イベントストアがそのイベントを <code>events.db</code> に追記する。イベントの名前は過去形にする（例: TaskStarted）。追記したイベントは書き換えない</dd>
+  <dt>ポリシー</dt><dd>ポリシーは、ある集約のイベントを受け取り、別の集約へ送るコマンドを返す規則である</dd>
+</dl>
+<p>autodev には集約が 6 つある。それぞれの集約は、自分のストリームを持つ。ストリームは、1 つの集約のイベントを、イベントストアが追記した順に並べた列である。集約は、ほかの集約の状態を読まない。集約どうしは、イベントとポリシーを通してつながる（<a href="#events">5 章</a>）。</p>
+
+<figure>
+<svg class="sv" viewBox="0 0 820 530" role="img" aria-label="6 つの集約とストリームと、ポリシーが集約どうしの間で送る主なコマンド。Run から Task へ、タスクを始める・止める。Task から ReviewLedger へ指摘・判定、ReviewLedger から Task へ、ラウンドを終える。Task から Design へ提案。Design から Run へ確定した計画。ReviewLedger から Design へ確定・修正。Task から Stack へスタックへの追加、Stack から Task へ GitJob のフロー。Run から Stack へ GitJob を登録、Stack から Run へ追加した。Run から Questions へ質問、Questions から Run へ回答。">
+  <defs>
+    <marker id="ah-agg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+  <g text-anchor="middle">
+    <rect class="nd" x="330" y="20" width="160" height="52" rx="6"/>
+    <text x="410" y="42">Questions</text><text class="sub" x="410" y="61">stream: questions</text>
+    <rect class="nd" x="330" y="150" width="160" height="52" rx="6"/>
+    <text x="410" y="172">Run</text><text class="sub" x="410" y="191">stream: run</text>
+    <rect class="nd" x="320" y="290" width="180" height="52" rx="6"/>
+    <text x="410" y="312">Task</text><text class="sub" x="410" y="331">stream: task/&lt;TaskId&gt;</text>
+    <rect class="nd" x="320" y="442" width="180" height="70" rx="6"/>
+    <text x="410" y="463">ReviewLedger</text><text class="sub" x="410" y="482">stream: review/&lt;TaskId&gt;</text><text class="sub" x="410" y="500">review/design</text>
+    <rect class="nd" x="20" y="290" width="160" height="52" rx="6"/>
+    <text x="100" y="312">Design</text><text class="sub" x="100" y="331">stream: design</text>
+    <rect class="nd" x="640" y="290" width="160" height="52" rx="6"/>
+    <text x="720" y="312">Stack</text><text class="sub" x="720" y="331">stream: stack</text>
+  </g>
+  <g marker-end="url(#ah-agg)">
+    <line class="ln" x1="395" y1="150" x2="395" y2="74"/>
+    <line class="ln" x1="425" y1="72" x2="425" y2="148"/>
+    <line class="ln" x1="410" y1="202" x2="410" y2="288"/>
+    <line class="ln" x1="395" y1="342" x2="395" y2="440"/>
+    <line class="ln" x1="425" y1="442" x2="425" y2="344"/>
+    <line class="ln" x1="320" y1="316" x2="182" y2="316"/>
+    <line class="ln" x1="500" y1="304" x2="638" y2="304"/>
+    <line class="ln" x1="640" y1="328" x2="502" y2="328"/>
+    <line class="ln" x1="493" y1="172" x2="690" y2="286"/>
+    <line class="ln" x1="710" y1="280" x2="493" y2="157"/>
+    <line class="ln" x1="130" y1="288" x2="328" y2="190"/>
+    <line class="ln" x1="318" y1="478" x2="110" y2="344"/>
+  </g>
+  <text class="lb" x="387" y="116" text-anchor="end">質問</text>
+  <text class="lb" x="433" y="116" text-anchor="start">回答</text>
+  <text class="lb" x="402" y="250" text-anchor="end">タスクを始める・止める</text>
+  <text class="lb" x="387" y="396" text-anchor="end">指摘・判定</text>
+  <text class="lb" x="433" y="396" text-anchor="start">ラウンドを終える</text>
+  <text class="lb" x="251" y="308" text-anchor="middle">提案</text>
+  <text class="lb" x="570" y="296" text-anchor="middle">スタックへの追加</text>
+  <text class="lb" x="570" y="348" text-anchor="middle">GitJob のフロー</text>
+  <text class="lb" x="583" y="243" text-anchor="end">GitJob を登録</text>
+  <text class="lb" x="608" y="206" text-anchor="start">追加した</text>
+  <text class="lb" x="223" y="226" text-anchor="end">確定した計画</text>
+  <text class="lb" x="206" y="423" text-anchor="end">確定・修正</text>
+</svg>
+<figcaption>6 つの集約と、それぞれのストリームの名前を示す。矢印は、ある集約のイベントを受け取ったポリシーが、別の集約へ送る主なコマンドを表す。</figcaption>
+</figure>
+
+<div class="aggregate">
+<h3>Run — ランの全体</h3>
+<p>Run は、タスクどうしの依存関係のグラフと、各タスクの状態を持つ。Run は、どのタスクをいつ始め、いつ止めるかを決める。ラン統括が下した判断は、質問を除いて、すべて Run がコマンドとして受け取る。最初の計画を Run に反映するコマンド（<code>ApplyPlan</code>）は、ポリシーが送る。ラン統括が apply-plan という判断を返すと、driver はその判断を、再計画を反映するコマンド（<code>ApplyReplan</code>）にして Run に送る。</p>
+<p>Run は次の規則を守る。</p>
+<ul>
+  <li>Run が実装タスクを始めるのは、次の 3 つの条件がすべて成り立つときに限る。1 つ目は、そのタスクがまだ始まっていない（pending）こと。2 つ目は、そのタスクが依存するタスクが、すべてスタックに追加済みであること。3 つ目は、running の実装タスクと escalated の実装タスクの数の合計が、並列の上限より少ないこと</li>
+  <li>依存関係のグラフに循環があってはならない。また、あるタスクが依存するタスクは、止めたタスクや破棄したタスクであってはならない。Run はタスクの番号を再利用しない</li>
+  <li>Run は、スタックに追加済みのタスクを止めるコマンドを受け付けない。Run が追加済みのタスクをスタックから外すのは、確定した再計画がそのタスクの破棄を提案した場合に限る</li>
+  <li>次のどれかに当てはまる間、Run はランを終えるコマンド（<code>FinishRun</code>）を受け付けない
+    <ul>
+      <li>終端の状態にない実装タスクが残っている</li>
+      <li>計画タスクが計画または再計画を進めている</li>
+      <li>破棄したタスクから上の PR を閉じ終えていないか、その上にあったタスクを gated に戻し終えていない</li>
+    </ul>
+  </li>
+  <li>Run は、タスクを 1 つもスタックに追加しないまま行う再計画を、2 回まで受け付ける。3 回目の再計画を受け付けるには、ユーザーの回答が必要である</li>
+</ul>
+<dl class="io">
+  <dt>主に受け取るコマンド</dt><dd><code>StartRun</code>・<code>ApplyPlan</code>・<code>ApplyReplan</code>・<code>RequestReplan</code>・<code>InsertTask</code>・<code>StopTasks</code>・<code>EscalateToRun</code>・<code>AnswerEscalation</code>・<code>FinishRun</code></dd>
+  <dt>主に返すイベント</dt><dd><code>RunStarted</code>・<code>TaskStarted</code>・<code>TasksPlanned</code>・<code>ReplanRequested</code>・<code>TaskInserted</code>・<code>TasksStopped</code>・<code>TasksDiscarded</code>・<code>TaskStatusChanged</code>・<code>TaskMarkedStacked</code>・<code>AllTasksSettled</code>・<code>RunFinished</code></dd>
+</dl>
+<figure>
+<div class="states">
+  <span class="chip">pending<small>未着手</small></span>
+  <span class="chip">running<small>進行中</small></span>
+  <span class="chip">escalated<small>回答待ち</small></span>
+  <span class="chip">gated<small>スタックへの追加を待つ</small></span>
+  <span class="chip">stacking<small>スタックに追加中</small></span>
+  <span class="chip end">stacked<small>追加済み</small></span>
+  <span class="chip end">dropped<small>止めた</small></span>
+  <span class="chip end">superseded<small>別のタスクが引き継いだ</small></span>
+  <span class="chip end">discarded<small>破棄した</small></span>
+</div>
+<div class="table-wrap">
+<table class="tr">
+<thead><tr><th>前の状態</th><th></th><th>後の状態</th><th>きっかけ</th></tr></thead>
+<tbody>
+<tr><td><span class="chip start">はじめ</span></td><td>→</td><td><span class="chip">pending</span></td><td>タスクが計画に載った（TasksPlanned）。または、Run がランの途中でタスクを差し込んだ（TaskInserted）。</td></tr>
+<tr><td><span class="chip">pending</span></td><td>→</td><td><span class="chip">running</span></td><td>Run がタスクを始めた（TaskStarted）。</td></tr>
+<tr><td><span class="chip">running</span></td><td>→</td><td><span class="chip">escalated</span></td><td>Task がエスカレーションを送った。</td></tr>
+<tr><td><span class="chip">escalated</span></td><td>→</td><td><span class="chip">running</span></td><td>次のどれかが起きた。エスカレーションに回答が届いた。エスカレーションが回答以外の理由で閉じた。タスクの範囲が変わった。Task が、エスカレーションに対応する新しいフローを受け付けた。</td></tr>
+<tr><td><span class="chip">running</span></td><td>→</td><td><span class="chip">gated</span></td><td>Task がフローを最後まで進めた。</td></tr>
+<tr><td><span class="chip">gated</span></td><td>→</td><td><span class="chip">stacking</span></td><td>git 管理タスクが、このタスクをスタックに追加する GitJob をキューから取り出した。</td></tr>
+<tr><td><span class="chip">stacking</span></td><td>→</td><td><span class="chip">gated</span></td><td>git 管理タスクが、スタックに追加する GitJob のフローを破棄した。</td></tr>
+<tr><td><span class="chip">stacking</span></td><td>→</td><td><span class="chip end">stacked</span></td><td>git 管理タスクがこのタスクをスタックに追加し終え、Run が TaskMarkedStacked を返した。</td></tr>
+<tr><td><span class="chip">stacking</span></td><td>→</td><td><span class="chip end">superseded</span></td><td>統合に失敗し、別のタスクがこのタスクを引き継いだ（TaskSuperseded）。</td></tr>
+<tr><td><span class="chip">gated</span></td><td>→</td><td><span class="chip">pending</span></td><td>再計画でタスクの範囲が変わった（TasksPlanned）。</td></tr>
+<tr><td><span class="chip end">stacked</span></td><td>→</td><td><span class="chip end">discarded</span></td><td>確定した再計画が、このタスクを破棄した（TasksDiscarded）。</td></tr>
+<tr><td><span class="chip end">stacked</span></td><td>→</td><td><span class="chip">gated</span></td><td>破棄したタスクより上にこのタスクがあったので、Run がスタックに追加し直すためにこのタスクを gated に戻した（TasksReturnedToQueue）。</td></tr>
+<tr><td><span class="chip">pending</span> <span class="chip">running</span> <span class="chip">escalated</span> <span class="chip">gated</span> <span class="chip">stacking</span></td><td>→</td><td><span class="chip end">dropped</span></td><td>Run がタスクを止めた。</td></tr>
+</tbody>
+</table>
+</div>
+<div class="legend"><span><span class="chip">状態</span>途中の状態</span><span><span class="chip end">状態</span>終端の状態</span><span><span class="chip start">はじめ</span>タスクができる前</span></div>
+<figcaption>Run が持つ実装タスクの状態（TaskStatus）を示す。dropped への遷移では、どれも Run が TasksStopped というイベントを返す。イベント名を書いていない遷移では、ほかの集約のイベントを受け取ったポリシーが Run にコマンドを送り、Run が TaskStatusChanged を返す。stacked、dropped、superseded、discarded は終端の状態である。終端の状態は、そのタスクがもう進まないことを表す。ただし、再計画でタスクを破棄すると、stacked のタスクも discarded か gated に移る。計画タスクと git 管理タスクの状態は running と escalated の間を行き来する。計画タスクはランを終えたときに、git 管理タスクは仕上げを終えたときに、状態が finished になる。</figcaption>
+</figure>
+</div>
+
+<div class="aggregate">
+<h3>Task — タスク 1 つの中身</h3>
+<p>計画タスク、実装タスク、git 管理タスクの 3 種類とも、同じ Task 集約で表す。Task はフローと cursor を持つ。<strong>Task は、次に実行するステージを決める。</strong>また Task は、実行器が集めた証拠をもとに、ステージの結果を完了、失敗、エスカレーションのどれにするかを決める。</p>
+<p>ask は、計画のステージ（Plan、Replan、Revise）の LLM が、ユーザーに質問するために実行するコマンド（<code>autodev ask --question &lt;質問&gt;</code>）である。ガードのフックは、回答がまだ無い ask のコマンドを保留する。その結果、ステージの実行は deferred の状態で止まる。回答が届くと、実行器がそのセッションを続きから再開し、ask は回答を LLM に返す。</p>
+<p>Task は次の規則を守る。</p>
+<ul>
+  <li>次のどれかに当てはまる間、Task は次に実行するステージを決めない。ただし、状態が requested の実行は、この場合も実行器が起動する
+    <ul>
+      <li>回答を待っているエスカレーションがある</li>
+      <li>Task がフローを破棄し、新しいフローをまだ受け付けていない</li>
+      <li>完了チェックで不合格になった項目について、ReviewLedger の判定を待っている</li>
+    </ul>
+  </li>
+  <li>ステージの中には、結果をほかの集約へ渡すものがある。渡す結果は、指摘、判定、提案、作った概要 PR、スタックに追加した PR、破棄で閉じた PR の範囲である。このようなステージが完了しても、結果を受け取った集約が ResultReceived を返すまで、Task は cursor を進めない。受け取った集約が ResultRefused を返した場合、Task は result-refused という種類のエスカレーションを送る</li>
+  <li>フローの同じ位置のステージが 2 回続けて失敗した場合、Task は stage-errors という種類のエスカレーションを送る。1 回目の失敗では、Task はそのステージをやり直す</li>
+  <li>TestGen と TestFix は、始める前（同じ位置の最初の試みだけ）と終わった後に、driver が軽い検査を流す。終わった後に落ちたコマンドが始める前（baseline）から落ちていたなら、Task は差し戻さず quick-check-failed で上げる。このステージで落ちたなら、Task は StageSentBack を出し、統括を通さずに同じ位置を新しい実行でやり直す。差し戻した後の試みも、最初の試みの baseline と比べる。差し戻しは 2 回までで、3 回目に落ちたら quick-check-failed で上げる。TestFix の最初の試みの baseline は、ReviewLoop のラウンドごとに取り直す。数えるのはそのフローの間だけで、フローを書き直すか、同じ位置が完了すると 1 から数え直す。TestGen・TestFix が quick-check-failed か design-gap を報告したときは、軽い検査の結果を見ずにその報告で上げる</li>
+  <li>回答を待っているエスカレーションがある間、Task が受け付けるフローは、そのエスカレーションに対応するフローに限る</li>
+  <li>実装タスクのフローには、Gate と WritePrBody を必ず含める。どちらかが欠けたフローを、Task は受け付けない</li>
+</ul>
+<dl class="io">
+  <dt>主に受け取るコマンド</dt><dd><code>OpenTask</code>・<code>AcceptFlow</code>・<code>BeginStage</code>・<code>ReportStageResult</code>・<code>ConfirmHandoff</code>・<code>ConcludeReviewRound</code>・<code>ResolveEscalation</code>・<code>StopTask</code></dd>
+  <dt>主に返すイベント</dt><dd><code>FlowAccepted</code>・<code>StageRequested</code>・<code>StageStarted</code>・<code>StageCompleted</code>・<code>StageFailed</code>・<code>EscalationRaised</code>・<code>FlowFinished</code>・<code>TaskGated</code></dd>
+</dl>
+<figure>
+<div class="states">
+  <span class="chip">requested<small>実行すると決めた</small></span>
+  <span class="chip">running<small>実行中</small></span>
+  <span class="chip">completed<small>完了</small></span>
+  <span class="chip">refused<small>集約が結果を受け付けなかった</small></span>
+  <span class="chip">failed<small>失敗した</small></span>
+  <span class="chip">reported<small>報告を返した</small></span>
+  <span class="chip">deferred<small>ask で質問して停止</small></span>
+  <span class="chip">interrupted<small>中断した</small></span>
+  <span class="chip">restarted<small>新しい実行でやり直す</small></span>
+  <span class="chip">sent-back<small>軽い検査が落ちて差し戻した</small></span>
+  <span class="chip">abandoned<small>取りやめた</small></span>
+</div>
+<div class="table-wrap">
+<table class="tr">
+<thead><tr><th>前の状態</th><th></th><th>後の状態</th><th>きっかけ</th></tr></thead>
+<tbody>
+<tr><td><span class="chip start">はじめ</span></td><td>→</td><td><span class="chip">requested</span></td><td>Task が次に実行するステージを決めた。</td></tr>
+<tr><td><span class="chip">requested</span></td><td>→</td><td><span class="chip">running</span></td><td>実行器がステージを始めた。</td></tr>
+<tr><td><span class="chip">requested</span></td><td>→</td><td><span class="chip">failed</span></td><td>実行器がステージを始めることに失敗した。</td></tr>
+<tr><td><span class="chip">requested</span></td><td>→</td><td><span class="chip">abandoned</span></td><td>Task がフローを破棄した（StageCancelled）。</td></tr>
+<tr><td><span class="chip">running</span></td><td>→</td><td><span class="chip">completed</span></td><td>ステージの結果が合格だった（StageCompleted）。または、完了チェックで不合格の項目が出た（GateFailed）。GateFailed の場合も、Gate のステージ自体は最後まで正しく動いたので、実行は completed になる。不合格の項目は、G- の指摘として ReviewLedger に登録する。</td></tr>
+<tr><td><span class="chip">running</span></td><td>→</td><td><span class="chip">failed</span></td><td>次のどれかが起きた。ステージがエラーで終わった。ステージの結果の形式が、決まった形式と違った（実行器が同じセッションに違う所を伝えて 2 回まで返し直させ、それでも違った）。ステージが作るはずのファイルなどの実物が無かった（変えないと返したステージは、前の成果物が記録されていれば、コミットしていない変更に関わらずそれをそのまま使う。記録されていなければ、作業ツリーにコミットしていない変更が無いときだけ HEAD を在りかにして完了し、変更が残っていれば失敗する）。</td></tr>
+<tr><td><span class="chip">running</span></td><td>→</td><td><span class="chip">reported</span></td><td>ステージが報告を返した（StageReported）。</td></tr>
+<tr><td><span class="chip">running</span></td><td>→</td><td><span class="chip">deferred</span></td><td>ステージが ask で質問を出した（StageDeferred）。</td></tr>
+<tr><td><span class="chip">running</span></td><td>→</td><td><span class="chip">interrupted</span></td><td>次のどれかが起きた（StageInterrupted）。Run がタスクを止めた。driver が異常終了した。パニックが起きた。</td></tr>
+<tr><td><span class="chip">running</span></td><td>→</td><td><span class="chip">restarted</span></td><td>実行器が、前のセッションの続きを起動することに失敗した（ExecutionRestarted）。</td></tr>
+<tr><td><span class="chip">running</span></td><td>→</td><td><span class="chip">sent-back</span></td><td>ステージが終わった後の軽い検査が、このステージのせいで落ちた（StageSentBack）。worktree は戻さず、次の試みは差し戻した試みのコミットから続ける。</td></tr>
+<tr><td><span class="chip">completed</span></td><td>→</td><td><span class="chip">refused</span></td><td>結果を受け取る集約が、その結果を受け付けなかった（HandoffFailed）。</td></tr>
+<tr><td><span class="chip">interrupted</span></td><td>→</td><td><span class="chip">running</span></td><td>実行器が、中断した実行を続きから再開した。</td></tr>
+<tr><td><span class="chip">deferred</span></td><td>→</td><td><span class="chip">running</span></td><td>回答が届き、実行器が実行を続きから再開した。</td></tr>
+<tr><td><span class="chip">deferred</span></td><td>→</td><td><span class="chip">abandoned</span></td><td>エスカレーションが回答以外の理由で閉じた。または、Task がエスカレーションに対応する新しいフローを受け付けた。</td></tr>
+</tbody>
+</table>
+</div>
+<figcaption>ステージの実行の状態（ExecutionStatus）を示す。実行が failed、reported、refused、restarted、sent-back のどれかになった後は、Task がフローの同じ位置のステージを新しい実行でやり直す。interrupted の実行のうち、driver をもう一度起動したときに自動で再開するのは、driver が異常終了した場合と、パニックで止まった場合に限る。</figcaption>
+</figure>
+</div>
+
+<div class="aggregate">
+<h3>ReviewLedger — 指摘の記録</h3>
+<p>ReviewLedger には 2 種類ある。タスクごとの ReviewLedger のストリームは <code>review/&lt;TaskId&gt;</code> で、設計の ReviewLedger のストリームは <code>review/design</code> である。</p>
+<p>ReviewLedger は次の規則を守る。</p>
+<ul>
+  <li>指摘の種類ごとに、その指摘を判定するステージが決まっている。レビューの指摘は Judge が、完了チェックの指摘は Gate が、設計の指摘は DesignJudge が判定する。ReviewLedger が指摘の状態を変えるのは、その ReviewLedger を持つタスクの中で実行器が実行した、判定するステージの結果を受け取ったときに限る</li>
+  <li>ReviewLedger は、指摘の状態を変えるとき、必ずコメントを一緒に記録する</li>
+  <li>タスクの ReviewLedger は、修正するステージ（Fix・TestFix）が完了するたびに、open で宛先がそのステージと同じ指摘（Fix は impl、TestFix は tests）の修正の回数を数える。判定のラウンドを終えるときに、タスクの ReviewLedger は、停滞した指摘があるかを調べる。設計の ReviewLedger は修正の回数を数えない。設計の修正の繰り返しは、Design 集約がラウンドの数を数え、上限で止める</li>
+  <li>再計画で別のタスクへ移した指摘（carried）は、指摘を受け取るタスクの ReviewLedger に 1 回だけ登録する</li>
+</ul>
+<dl class="io">
+  <dt>主に受け取るコマンド</dt><dd><code>RecordFindings</code>・<code>RecordJudgement</code>・<code>RecordGateResult</code>・<code>CountFix</code>・<code>CarryFinding</code></dd>
+  <dt>主に返すイベント</dt><dd><code>FindingRaised</code>・<code>FindingClosed</code>・<code>FindingRejected</code>・<code>FindingReopened</code>・<code>FindingStalled</code>・<code>FindingsEvaluated</code>・<code>ResultReceived</code>・<code>ResultRefused</code></dd>
+</dl>
+<figure>
+<div class="states">
+  <span class="chip">open<small>未解決</small></span>
+  <span class="chip">closed<small>直った</small></span>
+  <span class="chip">rejected<small>指摘が妥当でない</small></span>
+  <span class="chip end">carried<small>別のタスクへ移した</small></span>
+</div>
+<div class="table-wrap">
+<table class="tr">
+<thead><tr><th>前の状態</th><th></th><th>後の状態</th><th>きっかけ</th></tr></thead>
+<tbody>
+<tr><td><span class="chip start">はじめ</span></td><td>→</td><td><span class="chip">open</span></td><td>ReviewLedger が新しい指摘を登録した。</td></tr>
+<tr><td><span class="chip">open</span></td><td>→</td><td><span class="chip">closed</span></td><td>判定するステージが、指摘は直ったと判定した。</td></tr>
+<tr><td><span class="chip">open</span></td><td>→</td><td><span class="chip">rejected</span></td><td>判定するステージが、指摘は妥当でないと判定した。</td></tr>
+<tr><td><span class="chip">closed</span></td><td>→</td><td><span class="chip">open</span></td><td>判定するステージが、指摘を open に戻した（FindingReopened）。</td></tr>
+<tr><td><span class="chip">rejected</span></td><td>→</td><td><span class="chip">open</span></td><td>判定するステージが、指摘を open に戻した（FindingReopened）。</td></tr>
+<tr><td><span class="chip">open</span></td><td>→</td><td><span class="chip end">carried</span></td><td>再計画で、指摘を別のタスクへ移した（FindingCarried）。</td></tr>
+</tbody>
+</table>
+</div>
+<figcaption>指摘の状態（FindingStatus）を示す。終端の状態は carried だけである。</figcaption>
+</figure>
+</div>
+
+<div class="aggregate">
+<h3>Design — 設計の改訂番号と、確定前の提案</h3>
+<p>Design は、計画のステージ（Plan、Replan、Revise）が返した提案を受け取る。DesignLoop の各ラウンドで、Design はラウンドの数を数え、DesignJudge の判定をもとに、提案を確定するか、修正に回すか、回答を待つかを決める。Design は、ステージの起動もファイルの書き込みも行わない。</p>
+<p>Design は次の規則を守る。</p>
+<ul>
+  <li>Design が提案を確定するのは、DesignJudge が今の提案の改訂番号の設計を判定し、open の must-fix の指摘が 0 件の状態でラウンドを終えたときに限る。Design が提案を確定すると、must-fix 以外の open の指摘について、反応がその指摘を設計ファイルの末尾に書き足し、ポリシーがその指摘を rejected にする</li>
+  <li>Design は、これまでの改訂番号の一覧を持ち、古い改訂番号を一覧から消さない。新しい改訂番号は、前の改訂番号より大きい</li>
+  <li>Design は、1 つの提案について、DesignLoop のラウンドを 5 回まで数える。上限に達すると、Design は回答を待つ状態に移る</li>
+  <li>回答を待っている間、Design は提案を修正に回さず、確定もしない</li>
+</ul>
+<dl class="io">
+  <dt>主に受け取るコマンド</dt><dd><code>ProposeDesign</code>・<code>ReviseDesign</code>・<code>SettleDesign</code>・<code>MarkReverted</code>・<code>MarkAmbiguous</code>・<code>ResumeDesign</code>・<code>DiscardProposal</code></dd>
+  <dt>主に返すイベント</dt><dd><code>DesignProposed</code>・<code>DesignRevisionStarted</code>・<code>DesignRevised</code>・<code>DesignSettled</code>・<code>DesignRoundsExhausted</code>・<code>DesignReverted</code>・<code>DesignAmbiguous</code>・<code>DesignProposalAbandoned</code></dd>
+</dl>
+<figure>
+<div class="states">
+  <span class="chip">judging<small>判定を待つ</small></span>
+  <span class="chip">revising<small>修正中</small></span>
+  <span class="chip">awaiting<small>回答を待つ</small></span>
+</div>
+<div class="table-wrap">
+<table class="tr">
+<thead><tr><th>前の状態</th><th></th><th>後の状態</th><th>きっかけ</th></tr></thead>
+<tbody>
+<tr><td><span class="chip start">はじめ</span></td><td>→</td><td><span class="chip">judging</span></td><td>Design が提案を受け取った。ラウンドは 1 になる。</td></tr>
+<tr><td><span class="chip">judging</span></td><td>→</td><td><span class="chip">revising</span></td><td>判定の後も must-fix の指摘が残った。Design はラウンドを 1 増やす。</td></tr>
+<tr><td><span class="chip">revising</span></td><td>→</td><td><span class="chip">judging</span></td><td>Design が、修正した新しい改訂番号の設計を受け取った。</td></tr>
+<tr><td><span class="chip">judging</span></td><td>→</td><td><span class="chip">awaiting</span></td><td>次のどれかが起きた。ラウンドが上限に達した（DesignRoundsExhausted）。DesignJudge が、今の設計は前の改訂で別の指摘を受けて変えた形に戻っていると判定した（DesignReverted）。この判定は、2 つの形の間を行き来して修正が終わらなくなるのを止めるためにある。DesignJudge が、受入条件が曖昧だと判定した（DesignAmbiguous）。</td></tr>
+<tr><td><span class="chip">awaiting</span></td><td>→</td><td><span class="chip">revising</span></td><td>Design が回答を受け取った。Design はラウンドを 1 から数え直す。</td></tr>
+<tr><td><span class="chip">judging</span></td><td>→</td><td><span class="chip end">おわり</span></td><td>Design が提案を確定した。このとき must-fix の指摘は 0 件である。</td></tr>
+<tr><td><span class="chip">judging</span> <span class="chip">revising</span> <span class="chip">awaiting</span></td><td>→</td><td><span class="chip end">おわり</span></td><td>再計画によって、Design が提案を破棄した。</td></tr>
+</tbody>
+</table>
+</div>
+<div class="legend"><span><span class="chip end">おわり</span>提案を確定または破棄した</span></div>
+<figcaption>確定していない提案の状態（ProposalState）を示す。再計画で提案を破棄する遷移では、どれも Design が DesignProposalAbandoned というイベントを返す。</figcaption>
+</figure>
+</div>
+
+<div class="aggregate">
+<h3>Stack — スタックの形と、GitJob のキュー</h3>
+<p>すべての GitJob は、種類にかかわらず 1 つのキューに並ぶ。git 管理タスクは、キューから GitJob を 1 つずつ取り出して処理する。Stack は、スタックの今の形を見て、GitJob を取り出してよいかと、GitJob の対象（PR を重ねる位置や、閉じる PR の範囲）を決める。そのため、キューは Stack 集約が持つ。</p>
+<p>Stack は次の規則を守る。</p>
+<ul>
+  <li>スタックの一番下は概要 PR である。新しい PR は一番上にだけ重ねる。各 PR の base は、すぐ下の PR のブランチである</li>
+  <li>処理中の GitJob は、同時に 1 つまでである。概要 PR ができるまで、Stack は、概要ブランチを作る GitJob と概要 PR を作る GitJob 以外を取り出さない。再計画が進んでいる間、Stack はスタックに追加する GitJob を取り出さない。タスクを破棄した後は、PR を閉じ終えるまで、Stack は一番上に PR を重ねる GitJob を取り出さない</li>
+  <li>GitJob の中には、終えないとランを終えられないものがある。git 管理タスクがそのような GitJob のフローを破棄した場合、Stack はその GitJob をキューの先頭へ戻す。Stack が戻すのは 2 回までである。2 回を超えると、Stack は GitJob を戻さずに止め、ラン統括が続けるかやめるかを決める</li>
+  <li>Stack は、一度スタックに追加したブランチ名と PR 番号の再利用を受け付けない。git 管理タスクは、スタックに追加し直すタスクのために、新しい名前のブランチを作り直す</li>
+</ul>
+<dl class="io">
+  <dt>主に受け取るコマンド</dt><dd><code>EnqueueGitJob</code>・<code>EnqueueStack</code>・<code>TakeNextGitJob</code>・<code>AppendEntry</code>・<code>RejectRequest</code>・<code>UnstackFrom</code>・<code>FinishGitJob</code></dd>
+  <dt>主に返すイベント</dt><dd><code>GitJobQueued</code>・<code>GitJobTaken</code>・<code>TaskStacked</code>・<code>IntegrationFailed</code>・<code>StackCutBack</code>・<code>GitJobFinished</code></dd>
+</dl>
+<figure>
+<div class="states">
+  <span class="chip">キューで待つ</span>
+  <span class="chip">処理中<small>1 つだけ</small></span>
+  <span class="chip">ラン統括の判断を待つ</span>
+</div>
+<div class="table-wrap">
+<table class="tr">
+<thead><tr><th>前の状態</th><th></th><th>後の状態</th><th>きっかけ</th></tr></thead>
+<tbody>
+<tr><td><span class="chip start">はじめ</span></td><td>→</td><td><span class="chip">キューで待つ</span></td><td>Stack が GitJob をキューに入れた。</td></tr>
+<tr><td><span class="chip">キューで待つ</span></td><td>→</td><td><span class="chip">処理中</span></td><td>git 管理タスクが GitJob をキューから取り出した。Stack は、取り出してよいと判断したときにだけ取り出しを受け付ける。</td></tr>
+<tr><td><span class="chip">処理中</span></td><td>→</td><td><span class="chip end">おわり</span></td><td>次のどれかが起きた。git 管理タスクが GitJob を終えた。Run が GitJob の対象のタスクを止めた。git 管理タスクが統合に失敗した。git 管理タスクが、終えなくてもランを終えられる GitJob（概要 PR の書き直し）のフローを破棄した。</td></tr>
+<tr><td><span class="chip">処理中</span></td><td>→</td><td><span class="chip">キューで待つ</span></td><td>git 管理タスクが GitJob のフローを破棄した。Stack は、その GitJob をキューの先頭へ戻す。</td></tr>
+<tr><td><span class="chip">処理中</span></td><td>→</td><td><span class="chip">ラン統括の判断を待つ</span></td><td>Stack が GitJob をキューへ戻した回数が上限に達した。</td></tr>
+<tr><td><span class="chip">ラン統括の判断を待つ</span></td><td>→</td><td><span class="chip">キューで待つ</span></td><td>ラン統括が、GitJob を続けると決めた（GitJobRetried）。</td></tr>
+<tr><td><span class="chip">ラン統括の判断を待つ</span></td><td>→</td><td><span class="chip end">おわり</span></td><td>ラン統括が、GitJob をやめると決めた（GitJobDropped）。</td></tr>
+<tr><td><span class="chip">ラン統括の判断を待つ</span></td><td>→</td><td><span class="chip end">おわり</span></td><td>Run が GitJob の対象のタスクを止めた（GitJobWithdrawn）。</td></tr>
+<tr><td><span class="chip">キューで待つ</span></td><td>→</td><td><span class="chip end">おわり</span></td><td>Run が GitJob の対象のタスクを止めた。または、対象のタスクの範囲が変わった（GitJobWithdrawn）。</td></tr>
+</tbody>
+</table>
+</div>
+<div class="legend"><span><span class="chip end">おわり</span>GitJob の処理が終わった</span></div>
+<figcaption>GitJob の状態の移り方を示す。処理中の GitJob がどう終わったかは、GitJobOutcome（done、withdrawn、integration-failed、dropped、abandoned、stuck）で表す。</figcaption>
+</figure>
+</div>
+
+<div class="aggregate">
+<h3>Questions — ユーザーへの質問</h3>
+<p>Questions は、ラン統括が /autodev へ送った質問と、その回答を持つ。</p>
+<p>Questions は次の規則を守る。</p>
+<ul>
+  <li>Questions は、同じ質問の id を 2 回使わない</li>
+  <li>1 つのエスカレーションについて、回答を待っている質問は常に 1 つ以下である</li>
+  <li>Questions は、open の質問への回答だけを受け付ける。質問のもとになったエスカレーションが回答以外の理由で閉じた場合、Questions はその質問を取り下げる</li>
+</ul>
+<dl class="io">
+  <dt>主に受け取るコマンド</dt><dd><code>PostQuestion</code>・<code>AnswerQuestion</code>・<code>WithdrawQuestions</code></dd>
+  <dt>主に返すイベント</dt><dd><code>QuestionPosted</code>・<code>QuestionAnswered</code>・<code>QuestionWithdrawn</code></dd>
+</dl>
+<figure>
+<div class="states">
+  <span class="chip">open<small>回答待ち</small></span>
+  <span class="chip">answered<small>答えた</small></span>
+  <span class="chip">withdrawn<small>取り下げた</small></span>
+</div>
+<div class="table-wrap">
+<table class="tr">
+<thead><tr><th>前の状態</th><th></th><th>後の状態</th><th>きっかけ</th></tr></thead>
+<tbody>
+<tr><td><span class="chip start">はじめ</span></td><td>→</td><td><span class="chip">open</span></td><td>ラン統括が質問を出した。</td></tr>
+<tr><td><span class="chip">open</span></td><td>→</td><td><span class="chip">answered</span></td><td>ユーザーが質問に答えた。</td></tr>
+<tr><td><span class="chip">open</span></td><td>→</td><td><span class="chip">withdrawn</span></td><td>質問のもとになったエスカレーションが、回答以外の理由で閉じた。</td></tr>
+</tbody>
+</table>
+</div>
+<figcaption>質問の状態（QuestionStatus）を示す。回答を待っている質問があり、ほかに進められるタスクが無い場合、driver は終了コード 4 で終了する。</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="events">
+<h2>5. ドメインイベントとポリシー</h2>
+<p>集約は、ほかの集約を直接呼び出さない。ある集約が返したイベントをイベントストアが追記すると、<strong>ポリシー</strong>がそのイベントを受け取り、別の集約へ送るコマンドに変換する。ポリシーの一覧は <code>policies/registry.py</code> の表にあり、表は 80 行ある。表の 1 行は、「このイベントを受け取ったら、このコマンドを送る」という対応を 1 つ表す。</p>
+
+<figure>
+<div class="hf">
+  <div class="n">集約 A</div>
+  <div class="e r"><span>イベント</span><i></i></div>
+  <div class="n key">ポリシー<small>イベントだけを読む</small></div>
+  <div class="e r"><span>コマンド</span><i></i></div>
+  <div class="n">集約 B</div>
+  <div class="e r"><span>handle で規則を検査</span><i></i></div>
+  <div class="n">イベント</div>
+</div>
+<figcaption>ポリシーが集約どうしをつなぐ形を示す。例: Task が TaskGated を返すと、ポリシー enqueue-gated がそのイベントを受け取り、Stack に EnqueueStack を送る。</figcaption>
+</figure>
+
+<ul>
+  <li>ポリシーは、受け取ったイベントとそのイベントの id だけを使ってコマンドを作る。ポリシーは集約の状態を読まない。状態によって決まること（取り出せる GitJob があるか など）は、コマンドを受け取った集約が決める。たとえば、取り出せる GitJob が無い場合、Stack は何もしない</li>
+  <li>ポリシーが送るコマンドの id は、受け取ったイベントの id とポリシーの名前から決まる。集約は、処理したコマンドの id を保持し、同じ id のコマンドを 2 回受け取ると、2 回目には何もしない。そのため、driver がイベントを配り直して、ポリシーが同じコマンドをもう一度送っても、状態は 2 回変わらない</li>
+  <li>ステージの結果をほかの集約へ渡すと、結果を受け取った集約は ResultReceived か ResultRefused を返す。ポリシーがそのイベントを受け取って Task にコマンドを送る。Task は、ResultReceived を受け取った場合は cursor を進め、ResultRefused を受け取った場合は result-refused という種類のエスカレーションを送る</li>
+</ul>
+
+<h3>1 回のランの流れ</h3>
+<p>次の図は、実装タスクが 1 つだけのランを、計画、実装、スタックへの追加、ランの終了の順に示す。ステージの起動と統括の起動は、図から省いた。</p>
+<figure>
+<!-- 参加者 i（1〜8）は列の線 2i から 2i+2 を占め、中心は線 2i+1。やり取りは送り手と受け手の中心の線どうしを結ぶ -->
+<div class="seq">
+  <div class="p" style="grid-area: 1 / 2 / 2 / 4;">/autodev</div>
+  <div class="p" style="grid-area: 1 / 4 / 2 / 6;">Run</div>
+  <div class="p" style="grid-area: 1 / 6 / 2 / 8;">Task（計画）</div>
+  <div class="p" style="grid-area: 1 / 8 / 2 / 10;">Design</div>
+  <div class="p" style="grid-area: 1 / 10 / 2 / 12;">ReviewLedger</div>
+  <div class="p" style="grid-area: 1 / 12 / 2 / 14;">Task（実装）</div>
+  <div class="p" style="grid-area: 1 / 14 / 2 / 16;">Task（git）</div>
+  <div class="p" style="grid-area: 1 / 16 / 2 / 18;">Stack</div>
+  <div class="life" style="grid-area: 2 / 2 / 25 / 4;"></div>
+  <div class="life" style="grid-area: 2 / 4 / 25 / 6;"></div>
+  <div class="life" style="grid-area: 2 / 6 / 25 / 8;"></div>
+  <div class="life" style="grid-area: 2 / 8 / 25 / 10;"></div>
+  <div class="life" style="grid-area: 2 / 10 / 25 / 12;"></div>
+  <div class="life" style="grid-area: 2 / 12 / 25 / 14;"></div>
+  <div class="life" style="grid-area: 2 / 14 / 25 / 16;"></div>
+  <div class="life" style="grid-area: 2 / 16 / 25 / 18;"></div>
+
+  <div class="sn" style="grid-row: 2;">1</div>
+  <div class="m solid" style="grid-area: 2 / 3 / 3 / 5;"><span>StartRun</span><i></i></div>
+  <div class="sn" style="grid-row: 3;">2</div>
+  <div class="m" style="grid-area: 3 / 5 / 4 / 17;"><span>RunStarted → 概要ブランチを作る GitJob をキューへ</span><i></i></div>
+  <div class="sn" style="grid-row: 4;">3</div>
+  <div class="m to-l" style="grid-area: 4 / 15 / 5 / 17;"><span>GitJobTaken → CutBranch を実行</span><i></i></div>
+  <div class="sn" style="grid-row: 5;">4</div>
+  <div class="m to-l" style="grid-area: 5 / 7 / 6 / 15;"><span>WorktreeReady → Prepare・Plan・DesignLoop を組む</span><i></i></div>
+  <div class="sn" style="grid-row: 6;">5</div>
+  <div class="m" style="grid-area: 6 / 7 / 7 / 9;"><span>Plan の提案 → ProposeDesign</span><i></i></div>
+  <div class="sn" style="grid-row: 7;">6</div>
+  <div class="m" style="grid-area: 7 / 7 / 8 / 11;"><span>DesignReview の指摘・DesignJudge の判定</span><i></i></div>
+  <div class="sn" style="grid-row: 8;">7</div>
+  <div class="m to-l" style="grid-area: 8 / 9 / 9 / 11;"><span>must-fix が 0 件 → SettleDesign</span><i></i></div>
+  <div class="sn" style="grid-row: 9;">8</div>
+  <div class="m to-l" style="grid-area: 9 / 5 / 10 / 9;"><span>DesignSettled → 計画を反映（TasksPlanned）</span><i></i></div>
+  <div class="sn" style="grid-row: 10;">9</div>
+  <div class="m" style="grid-area: 10 / 5 / 11 / 17;"><span>概要 PR を作る GitJob をキューへ</span><i></i></div>
+  <div class="note" style="grid-row: 11;"><b>Stack</b>概要 PR ができるまで、Stack はほかの GitJob を取り出さない</div>
+  <div class="sn" style="grid-row: 12;">10</div>
+  <div class="m" style="grid-area: 12 / 5 / 13 / 13;"><span>TaskStarted → OpenTask</span><i></i></div>
+  <div class="sn" style="grid-row: 13;">11</div>
+  <div class="m" style="grid-area: 13 / 5 / 14 / 17;"><span>TaskStarted → タスクのブランチを作る GitJob をキューへ</span><i></i></div>
+  <div class="note" style="grid-row: 14;"><b>Task（実装）</b>タスク統括がフローを組む（例）TestGen → ConfirmRed → Impl → ReviewLoop → Gate → WritePrBody</div>
+  <div class="sn" style="grid-row: 15;">12</div>
+  <div class="m to-l" style="grid-area: 15 / 11 / 16 / 13;"><span>Review の指摘・Judge の判定</span><i></i></div>
+  <div class="sn" style="grid-row: 16;">13</div>
+  <div class="m" style="grid-area: 16 / 11 / 17 / 13;"><span>open の指摘が無い → ReviewLoop を抜ける</span><i></i></div>
+  <div class="sn" style="grid-row: 17;">14</div>
+  <div class="m" style="grid-area: 17 / 13 / 18 / 17;"><span>TaskGated → EnqueueStack</span><i></i></div>
+  <div class="sn" style="grid-row: 18;">15</div>
+  <div class="m to-l" style="grid-area: 18 / 15 / 19 / 17;"><span>GitJobTaken → Rebase … Push<br>→ CreatePR → StackLink</span><i></i></div>
+  <div class="sn" style="grid-row: 19;">16</div>
+  <div class="m" style="grid-area: 19 / 15 / 20 / 17;"><span>AppendEntry → TaskStacked</span><i></i></div>
+  <div class="sn" style="grid-row: 20;">17</div>
+  <div class="m to-l" style="grid-area: 20 / 5 / 21 / 17;"><span>MarkStacked → AllTasksSettled</span><i></i></div>
+  <div class="note" style="grid-row: 21;"><b>Run</b>ラン統括が finish を返す</div>
+  <div class="sn" style="grid-row: 22;">18</div>
+  <div class="m" style="grid-area: 22 / 5 / 23 / 17;"><span>RunFinished → 仕上げの GitJob をキューへ</span><i></i></div>
+  <div class="sn" style="grid-row: 23;">19</div>
+  <div class="m to-l" style="grid-area: 23 / 15 / 24 / 17;"><span>概要 PR を書き直す<br>（ラン統括が決めたら draft を解除）</span><i></i></div>
+  <div class="sn" style="grid-row: 24;">20</div>
+  <div class="m to-l" style="grid-area: 24 / 5 / 25 / 15;"><span>仕上げを終えた → git 管理タスクが finished</span><i></i></div>
+</div>
+<figcaption>点線の矢印は、ある集約のイベントを受け取ったポリシーが、別の集約へ送るコマンドを表す。</figcaption>
+</figure>
+</section>
+
+<section id="escalation">
+<h2>6. エスカレーション</h2>
+<p>ステージで起きた問題は、Task がエスカレーションとしてタスク統括へ送る。エスカレーションの受け手は、下から順に、タスク統括、ラン統括、/autodev、ユーザーである。EscalationRouter（7 章）は、エスカレーションの受け手を、送った者のすぐ上の受け手に決める。そのため、エスカレーションが途中の受け手を飛ばすことはない。</p>
+<p>回答は、エスカレーションを送った Task へ直接届く。具体的には、Run が回答を受け付けて EscalationAnswered を返し、ポリシーがエスカレーションを送った Task に ResolveEscalation を送る。タスク統括は回答を受け取らない。回答を受け取った Task は、止めていたフローを続ける。実行が ask で止まっていた場合は、実行器がその実行を続きから再開する。</p>
+<p>notes は、Task が持つ回答の一覧である。Task は、受け取った回答を、回答した者（ユーザーかラン統括か）と一緒に notes に加える。実行器は、その後に起動するすべてのステージに notes を渡す。</p>
+
+<figure>
+<div class="g" style="grid-template-columns: repeat(4, minmax(7.5rem, max-content)); column-gap: 0.6rem;">
+  <div class="n wide" style="grid-area: 1 / 1 / 2 / 5;">ステージ<small>報告・2 回続けて失敗・停滞</small></div>
+  <div class="e d side" style="grid-area: 2 / 1 / 3 / 3;"><i></i><span>EscalationRaised（タスク）</span></div>
+  <div class="e u side" style="grid-area: 2 / 3 / 3 / 5;"><i></i><span>新しいフローを返す</span></div>
+  <div class="n wide" style="grid-area: 3 / 1 / 4 / 5;">タスク統括</div>
+  <div class="e d side" style="grid-area: 4 / 1 / 5 / 5;"><i></i><span>EscalateToRun<br>needs-replan・needs-human など</span></div>
+  <div class="n wide key" style="grid-area: 5 / 1 / 6 / 5;">ラン統括</div>
+  <div class="e d side" style="grid-area: 6 / 1;"><i></i><span>answer<br>ResolveEscalation</span></div>
+  <div class="e d side" style="grid-area: 6 / 2;"><i></i><span>replan・insert-task・<br>stop-tasks</span></div>
+  <div class="e d side" style="grid-area: 6 / 3;"><i></i><span>ask-user<br>（PostQuestion）</span></div>
+  <div class="e u side" style="grid-area: 6 / 4;"><i></i><span>AnswerQuestion<br>Run が記録し、反応が<br>ラン統括を起動</span></div>
+  <div class="n wide" style="grid-area: 7 / 1; align-self: stretch;">Task<small>止めたフローを続ける</small></div>
+  <div class="n wide" style="grid-area: 7 / 2; align-self: stretch;">Run が計画とタスクを変更</div>
+  <div class="n wide" style="grid-area: 7 / 3 / 8 / 5;">/autodev</div>
+  <div class="e d side" style="grid-area: 8 / 3;"><i></i><span>質問</span></div>
+  <div class="e u side" style="grid-area: 8 / 4;"><i></i><span>回答</span></div>
+  <div class="n wide" style="grid-area: 9 / 3 / 10 / 5;">ユーザー</div>
+</div>
+<figcaption>エスカレーションを上へ送る経路と、回答を下へ返す経路を示す。</figcaption>
+</figure>
+
+<ul>
+  <li><strong>Task は、次の 4 つの場合にエスカレーションを送る。</strong>1 つ目は、ステージが報告を返した場合である（報告の例は、設計の穴やテストの矛盾）。2 つ目は、フローの同じ位置のステージが 2 回続けて失敗した場合である。3 つ目は、指摘が停滞した場合である。4 つ目は、完了チェックで、コードを直しても解決しない不合格の項目が出た場合である。Task が送ってよいエスカレーションの種類は、タスクの種類ごとに決まっている</li>
+  <li><strong>タスク統括がエスカレーションを受け取った場合、</strong>実装タスクのタスク統括（LLM）は、新しいフローを返してエスカレーションに対応するか、needs-replan または needs-human という種類のエスカレーションをラン統括へ送る。計画タスクと git 管理タスクのタスク統括はプログラムで、受け取ったエスカレーションを、種類を変えずにラン統括へ送る</li>
+  <li><strong>ラン統括がエスカレーションを受け取った場合、</strong>ラン統括は、自分で回答する、再計画する、タスクを差し込む、タスクを止める、のどれかで対応する。または、ラン統括はユーザーに質問する</li>
+  <li><strong>統括が判断を返さない場合、</strong>driver は、次の 2 つの方法で、統括に判断を求め直す。どちらも app の <code>SupervisorRunner</code> が行う
+    <ul>
+      <li>差し戻し: driver が統括の判断の JSON を解釈できない場合や、集約が判断を受け付けなかった場合、driver は理由を添えて、同じセッションに判断を返し直させる。差し戻しは 3 回までである</li>
+      <li>呼び直し: 統括のセッションが判断を返さずに終わった場合、driver は同じセッションを続きから起動し直す。同じセッションでの起動は合わせて 2 回までである。それでも判断が返らない場合、driver は新しいセッションで 1 回だけ起動する</li>
+    </ul>
+    差し戻しと呼び直しを上限の回数まで行っても統括が判断を返さない場合、driver はそのことを Run に伝える。タスク統括の場合は、ラン統括が supervisor-failed という種類のエスカレーションを受け取る。ラン統括の場合は、タスク統括のときと違い、1 回目からユーザーが受け取る。上の受け手が回答すると、反応は、判断を返さなかった統括を新しいセッションで起動し直し、前回の起動のきっかけになったイベントをもう一度渡す。同じイベントをきっかけに起動したタスク統括が、2 回を超えて続けて判断を返さなかった場合、Run は、ユーザーの回答を添えていないラン統括の回答を受け付けない
+  </li>
+  <li><strong>エスカレーションが回答以外の理由で閉じた場合、</strong>Task は、エスカレーションを送ったときに実行していたフローを破棄する。その後、統括が組んだ新しいフローを受け付けるまで、Task は次に実行するステージを決めない。エスカレーションが回答以外の理由で閉じるのは、たとえば Run がタスクを止めたときや、Run が再計画を反映したときである。Questions は、そのエスカレーションのために出した質問を取り下げる</li>
+</ul>
+</section>
+
+<section id="services">
+<h2>7. ドメインサービス</h2>
+<p>ドメインサービスは、どの集約の状態にも属さない規則で判断する、ドメインの関数やクラスである。集約は、handle の中でドメインサービスを呼び出す。ドメインの外の層のコードも、判断が必要な場面ではドメインサービスを呼び出し、返った結果のとおりに処理を実行する。</p>
+
+<figure>
+<div class="calls">
+  <div class="h">集約から呼び出す（実線）</div>
+  <div class="n">Run</div>
+  <div class="e r"><i></i></div>
+  <div class="to"><span class="n">TaskScheduler</span><span class="n">EscalationRouter</span></div>
+  <div class="n">Task</div>
+  <div class="e r"><i></i></div>
+  <div class="to"><span class="n">EscalationRouter</span><span class="n">GateEvaluator</span><span class="n">FlowValidator</span></div>
+  <div class="n">ReviewLedger</div>
+  <div class="e r"><i></i></div>
+  <div class="to"><span class="n">GateEvaluator</span><span class="n">StallPolicy</span></div>
+  <div class="h">ドメインの外から呼び出す（点線）</div>
+  <div class="n">ステージの実行器と決まった処理（app）</div>
+  <div class="e r dash"><i></i></div>
+  <div class="to"><span class="n">UnionChecker<small>証拠を集めるときに呼ぶ</small></span><span class="n">VerifySelector</span><span class="n">GateEvaluator<small>Gate の項目ごとの合否</small></span></div>
+  <div class="n">ガードのフック（adapters）</div>
+  <div class="e r dash"><i></i></div>
+  <div class="to"><span class="n">ガードの規則</span></div>
+  <div class="n">反応（app）</div>
+  <div class="e r dash"><i></i></div>
+  <div class="to"><span class="n">wake_for</span></div>
+  <div class="n">CLI の clean・purge・再実行</div>
+  <div class="e r dash"><i></i></div>
+  <div class="to"><span class="n">housekeeping</span></div>
+</div>
+<figcaption>ドメインサービスを呼び出すコードを示す。実線は集約からの呼び出しを、点線はドメインの外の層からの呼び出しを表す。</figcaption>
+</figure>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>サービス</th><th>決めること</th></tr></thead>
+<tbody>
+<tr><td>TaskScheduler</td><td>TaskScheduler は、実装タスクを今始めてよいかを決める。TaskScheduler は、始められるタスクを番号の小さい順に選ぶ。選ぶ数は、並列の上限から、running と escalated の実装タスクの数を引いた数である。</td></tr>
+<tr><td>EscalationRouter</td><td>EscalationRouter は、エスカレーションの受け手と、各受け手がさらに上へ送ってよいエスカレーションの種類を決める。</td></tr>
+<tr><td>GateEvaluator</td><td>GateEvaluator は、完了チェックの項目ごとに合否を決める。GateEvaluator は、コードを直せば解決する不合格を G- の指摘にし、コードを直しても解決しない不合格をエスカレーションにする。</td></tr>
+<tr><td>StallPolicy</td><td>StallPolicy は、指摘が停滞したか（修正するステージが 2 回完了した後も open のままか）を決める。</td></tr>
+<tr><td>FlowValidator</td><td>FlowValidator は、統括が返したフローを、実行する前に検査する。フローが検査に通らない場合、FlowValidator は、通らなかった理由をすべて集めて返す。</td></tr>
+<tr><td>UnionChecker</td><td>UnionChecker は、rebase の衝突を解決した結果に、両方のブランチの変更が残っているかを判定する。</td></tr>
+<tr><td>VerifySelector</td><td>VerifySelector は、ステージごとに実行する検証コマンドを選ぶ。TestGen と TestFix は軽い検査だけ、ConfirmRed はタスクのテストと軽い検査、Gate はタスクのテストと軽い検査、IntegrationCheck は軽い検査と回帰テストを選ぶ。同じコマンドが 2 つの種類に出たら、先に出た種類で 1 回だけ流す。ConfirmRed は、タスクのテストが落ち、軽い検査が通るときだけ通る。</td></tr>
+<tr><td>ガードの規則（<code>guard.py</code>）</td><td>ガードの規則は、LLM のステージが worktree の中で書いてよい範囲（WriteScope）と、場所が決まらない書き込みを止めるかを決める。worktree の外への書き込みと gh・git push は止めず、最初の指示（system_rules）で禁じる。</td></tr>
+<tr><td>wake_for（<code>supervision.py</code>）</td><td>wake_for は、イベントを受け取り、起動する LLM の統括と、起動の理由（Notice）を返す。wake_for の分岐に無いイベントでは、wake_for は統括を返さない。そのため、ステージが予定どおり進んでいる間は、どの統括も起動しない。</td></tr>
+<tr><td>housekeeping</td><td>housekeeping は、clean、purge、driver の再実行を今行ってよいかを判定し、行えない場合は理由を返す。clean は、ランの worktree を外し、ランの記録は残す。purge は、worktree と手元のブランチとランの記録を消す。どちらも、GitHub の PR とリモートのブランチは消さない。行えない理由の例は、前の driver が起動した子プロセスがまだ動いていることである。</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="values">
+<h2>8. 値オブジェクト</h2>
+<p>値オブジェクトとは、id、状態の名前、ブランチ名など、1 つの意味を持つ値を型として表したオブジェクトである。値オブジェクトは不変である。列挙の値オブジェクトは Enum で、それ以外の値オブジェクトは <code>frozen=True</code> の dataclass なので、作った後に属性に値を代入すると、Python が例外を投げる。2 つの dataclass の値オブジェクトを <code>==</code> で比べると、dataclass が作る <code>__eq__</code> が、それぞれのフィールドの値どうしを比べる。たとえば、別々に作った 2 つの <code>TaskId</code> は、どちらも値が <code>task3</code> なら等しい。</p>
+<p>値オブジェクトは、作るときに値の形を検査する。形の検査を持つ dataclass の値オブジェクト（<code>Text</code> と <code>Number</code> を土台にしたものなど）は、形が不正な場合にその場で <code>InvalidValue</code>（<code>ValueError</code> の子クラス）を投げる。Enum の値オブジェクトに定義されていない値を渡すと、Python が <code>ValueError</code> を投げる。どちらの場合も、不正な値を持つ値オブジェクトはできない。集約の状態を見ないと決められない検査（すでに使った番号と重ならないか など）は、値オブジェクトではなく、集約の handle が行う。</p>
+
+<figure>
+<div class="vo">
+  <div class="box-t">値オブジェクト</div>
+  <div class="vo-g">
+    <div class="vo-c"><div class="box-t">識別子</div><code>TaskId</code> <code>StreamId</code> <code>EventId</code> <code>ExecutionId</code> <code>FindingId</code> <code>QuestionId</code></div>
+    <div class="vo-c"><div class="box-t">列挙</div><code>TaskStatus</code> <code>StageKind</code> <code>EscalationKind</code> <code>FindingStatus</code> <code>Rating</code> <code>GitJobKind</code></div>
+    <div class="vo-c"><div class="box-t">複数の値の組</div><code>TaskSpec</code> <code>Proposal</code> <code>GitJob</code> <code>StackEntry</code> <code>Decision</code> <code>Issuer</code></div>
+    <div class="vo-c"><div class="box-t">上限</div><code>ParallelLimit</code></div>
+  </div>
+</div>
+<figcaption>値オブジェクトの分類と代表例を示す。値オブジェクトは、<code>domain/value_objects/</code> に全部で約 70 個ある。<code>limits.py</code> の上限値は、値オブジェクトではなく int の定数である。</figcaption>
+</figure>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>分類</th><th>代表例と、知っておくこと</th></tr></thead>
+<tbody>
+<tr><td>識別子</td><td><code>ExecutionId</code> は、タスク、ステージ、ラウンド、試行の回数を組み合わせた id である。1 つのタスクができてから終わるまでの間に、2 つの実行が同じ <code>ExecutionId</code> を持つことはない。<code>CommandId</code> は、ポリシーと反応がコマンドを送るときに、受け取ったイベントの id と、ポリシーまたは反応の名前から決まる。</td></tr>
+<tr><td>列挙</td><td>列挙は、決まった値のどれか 1 つを取る値オブジェクトである。<code>EscalationKind</code> は、エスカレーションを送る理由の種類を表す（stall、design-gap、needs-replan、supervisor-failed など）。<code>Rating</code> は、指摘の重み（must-fix、should-fix、nit）を表す。</td></tr>
+<tr><td>複数の値の組</td><td><code>TaskSpec</code> はタスクの中身を表し、件名、完了の定義、受入条件、範囲、入口、境界の形、タスクのテスト（<code>taskTests</code>）を持つ。<code>Decision</code> は回答を表し、回答の文面と、回答した者（ユーザーかラン統括か）を持つ。<code>Issuer</code> は、コマンドを送った者を表す。<code>Issuer</code> は driver が記録するので、ステージや統括は <code>Issuer</code> を自分で指定できない。</td></tr>
+<tr><td>上限</td><td><code>ParallelLimit</code> は、running と escalated の実装タスクの数の合計の上限を表す値オブジェクトで、既定は 3 である。ほかの上限は値オブジェクトではなく、<code>limits.py</code> の int の定数である。<code>limits.py</code> は次の上限を定める。タスクを 1 本もスタックに追加しない再計画は、2 回までである。指摘は、修正するステージが 2 回完了した後も open のままなら停滞になる。設計のラウンドは 5 回までである。GitJob をキューへ戻すのは 2 回までである。同じイベントをきっかけに起動したタスク統括が続けて判断を返さなかった場合、ラン統括が自分の判断だけで回答してよいのは 2 回までである。2 回を超えると、ラン統括はユーザーの回答を添えて回答する。</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="sourcing">
+<h2>9. イベントソーシング</h2>
+<p>イベントソーシングとは、状態そのものを保存せず、状態を変えたイベントを追記していく方式である。autodev が正しいとみなす記録は、<code>events.db</code> に追記したイベントだけである。autodev は、集約の状態をどこにも保存しない。</p>
+<p>再生とは、ストリームのイベントを最初から順に集約の apply に渡し、集約の状態を作り直すことである。driver は、起動したときと、処理の途中で例外が起きたときに再生する。<code>status --json</code> も、状態を表示する前に再生する。</p>
+<p>不変条件とは、集約がどの時点でも守る規則である。handle は、コマンドを受理しても不変条件が成り立つかを確かめる。</p>
+
+<figure>
+<svg class="sv" viewBox="0 0 800 290" role="img" aria-label="handle は、コマンドを受理しても不変条件が成り立つかを確かめる。拒否する場合、handle はイベントを返さず、理由をコマンドの送り主へ返す。受理した場合、handle はイベントを返し、イベントストアが追記のみの events.db にそのイベントを追記する。apply はイベントを集約の状態に適用する。driver の起動時と status --json では、再生が apply だけを使って状態を作り直す。ポリシーも events.db のイベントを受け取り、次のコマンドを送る。">
+  <defs>
+    <marker id="ah-src" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+  <g text-anchor="middle">
+    <rect class="nd" x="15" y="88" width="90" height="44" rx="6"/>
+    <text x="60" y="115">コマンド</text>
+    <polygon class="nd key" points="140,110 225,65 310,110 225,155"/>
+    <text x="225" y="106">handle</text><text class="sub" x="225" y="124">不変条件を確かめる</text>
+    <rect class="nd" x="355" y="88" width="90" height="44" rx="6"/>
+    <text x="400" y="115">イベント</text>
+    <path class="nd" d="M505,90 v40 a55,8 0 0,0 110,0 v-40"/>
+    <ellipse class="nd" cx="560" cy="90" rx="55" ry="8"/>
+    <text x="560" y="115">events.db</text><text class="sub" x="560" y="131">追記のみ</text>
+    <rect class="nd" x="660" y="88" width="110" height="44" rx="6"/>
+    <text x="715" y="115">ポリシー</text>
+    <rect class="nd" x="140" y="222" width="170" height="48" rx="6"/>
+    <text class="sub" x="225" y="242">イベントを返さない</text><text class="sub" x="225" y="260">理由を送り主へ返す</text>
+    <rect class="nd" x="420" y="222" width="100" height="44" rx="6"/>
+    <text x="470" y="240">apply</text><text class="sub" x="470" y="257">状態に適用</text>
+    <rect class="nd" x="610" y="222" width="120" height="44" rx="6"/>
+    <text x="670" y="240">再生</text><text class="sub" x="670" y="257">apply だけを使う</text>
+  </g>
+  <g marker-end="url(#ah-src)">
+    <line class="ln" x1="105" y1="110" x2="138" y2="110"/>
+    <line class="ln" x1="310" y1="110" x2="353" y2="110"/>
+    <line class="ln" x1="445" y1="110" x2="503" y2="110"/>
+    <line class="ln" x1="615" y1="110" x2="658" y2="110"/>
+    <polyline class="ln" points="715,88 715,40 60,40 60,86"/>
+    <line class="ln" x1="225" y1="155" x2="225" y2="220"/>
+    <line class="ln" x1="545" y1="140" x2="492" y2="220"/>
+    <line class="ln" x1="585" y1="140" x2="648" y2="220"/>
+    <line class="ln" x1="610" y1="244" x2="522" y2="244"/>
+  </g>
+  <text class="lb" x="331" y="102" text-anchor="middle">受理</text>
+  <text class="lb" x="388" y="33" text-anchor="middle">次のコマンド</text>
+  <text class="lb" x="233" y="192" text-anchor="start">拒否（Rejected）</text>
+  <text class="lb" x="627" y="182" text-anchor="start">起動時・status --json</text>
+</svg>
+<figcaption>集約の handle がコマンドを受理するとイベントを返し、イベントストアがそのイベントを events.db に追記する。apply はそのイベントから集約の状態を作り、ポリシーはそのイベントから次のコマンドを作る。</figcaption>
+</figure>
+
+<ul>
+  <li><strong>handle は、集約の状態を変えず、I/O も行わない。</strong>handle は、HEAD やセッション id を自分で調べない。実行器がそれらを調べて BeginStage コマンドに入れて送る。時刻も、driver はドメインに渡さない。イベントストアが、イベントを追記するときに時刻を付ける。そのため、テストは I/O 無しで規則を検査できる</li>
+  <li><strong>集約の状態を変えるメソッドは apply である。</strong>driver は、再生のときに apply だけを呼び、handle を呼ばない。そのため、handle は、規則で決めたこと（cursor が次に指す位置など）をすべてイベントに書き込む。apply は、イベントに書かれた値をそのまま状態に当てる</li>
+  <li><strong>集約は、状態を変えるコマンドを受け付けたら、必ずイベントを返す。</strong>イベントにしない変化は、再生したときに失われる</li>
+  <li><strong>イベントストアは、追記する前に集約のバージョンを確かめる。</strong>集約のバージョンとは、その集約のストリームに追記したイベントの数である。handle した時点の集約のバージョンと、イベントストアにあるストリームのバージョンが違う場合、イベントストアはイベントを 1 つも追記しない。この照合は、handle の後にイベントストアが同じストリームへ別のイベントを追記していた場合に、古い状態をもとに決めたイベントを書き込まないためにある</li>
+  <li><strong>集約は、拒否（Rejected）と ResultRefused を区別する。</strong>形が誤っているコマンド（回答が空である など）と、そのコマンドを送ってよい者でない者が送ったコマンド（判定するステージでない者が送った判定 など）は拒否になり、集約はイベントを返さない。拒否したコマンドは <code>events.db</code> に入らず、ランの記録の <code>logs/rejected.jsonl</code> に理由と一緒に残る。ステージの結果の中身に問題がある場合は、集約は ResultRefused というイベントを返す。Task は、ポリシーを通して ResultRefused を受け取り、result-refused という種類のエスカレーションを送る</li>
+</ul>
+</section>
+</main>
+</div>
+</body>
+</html>

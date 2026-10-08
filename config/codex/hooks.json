@@ -1,0 +1,33 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"$AUTODEV_GUARD\" ] || autodev hook deny-writes || exit 2"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"$AUTODEV_GUARD\" ] || autodev hook park-on-ask || exit 2"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "agent-toolkit hook stop --agent codex",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision"],
+  "properties": {
+    "decision": {
+      "enum": ["replan", "insert-task", "stop-tasks", "apply-plan", "answer", "ask-user", "finish"]
+    },
+    "replan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "trigger", "answer"],
+      "properties": {
+        "reason": { "type": "string", "minLength": 1 },
+        "trigger": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z]+(?:/[a-z0-9]+)?#[1-9][0-9]*$"
+        },
+        "answer": { "type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9-]*$" }
+      }
+    },
+    "insertTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spec", "blockedBy", "takesOver", "respondsTo"],
+      "properties": {
+        "spec": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["title", "dod", "acceptance", "scope", "entryPoints", "boundary", "taskTests"],
+          "properties": {
+            "title": { "type": "string", "minLength": 1 },
+            "dod": { "type": "string" },
+            "acceptance": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "scope": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "entryPoints": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "boundary": { "type": "string" },
+            "taskTests": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "blockedBy": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^task[1-9][0-9]*$" }
+        },
+        "takesOver": { "type": ["string", "null"], "pattern": "^task[1-9][0-9]*$" },
+        "respondsTo": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z]+(?:/[a-z0-9]+)?#[1-9][0-9]*$"
+        }
+      }
+    },
+    "stopTasks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tasks", "respondsTo"],
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^task[1-9][0-9]*$" }
+        },
+        "respondsTo": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z]+(?:/[a-z0-9]+)?#[1-9][0-9]*$"
+        }
+      }
+    },
+    "applyPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["design", "stop", "discard", "respondsTo"],
+      "properties": {
+        "design": { "type": "integer", "minimum": 1 },
+        "stop": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^task[1-9][0-9]*$" }
+        },
+        "discard": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^task[1-9][0-9]*$" }
+        },
+        "respondsTo": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z]+(?:/[a-z0-9]+)?#[1-9][0-9]*$"
+        }
+      }
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["escalation", "answer", "question"],
+      "properties": {
+        "escalation": { "type": "string", "pattern": "^[a-z]+(?:/[a-z0-9]+)?#[1-9][0-9]*$" },
+        "answer": { "type": ["string", "null"], "minLength": 1 },
+        "question": { "type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9-]*$" }
+      }
+    },
+    "askUser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["question", "body", "escalation"],
+      "properties": {
+        "question": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "body": { "type": "string", "minLength": 1 },
+        "escalation": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z]+(?:/[a-z0-9]+)?#[1-9][0-9]*$"
+        }
+      }
+    },
+    "finish": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["readyOverview"],
+      "properties": {
+        "readyOverview": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,103 @@
+# agent-toolkit のパッケージ（autodev・turnreview・hud）と、開発の検査（ruff・ty・pytest）の設定。
+#
+# 使い方:
+#   uv run pytest                テストを流す
+#   uv run ruff check .          問題を挙げる
+#   uv run ruff check --fix .    自動で直せるものを直す
+#   uv run ruff format .         整形する
+#   uv run ty check              型を検査する
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-toolkit"
+version = "0"
+description = "AI コーディングエージェントの設定・フック・autodev・HUD"
+requires-python = ">=3.10"
+dependencies = [
+  "rich>=13",
+  "textual>=0.80",
+  "tree-sitter-language-pack>=0.13",
+]
+
+[project.scripts]
+autodev = "autodev.cli:main"
+agent-hud = "hud.cli:main"
+agent-toolkit = "toolkit.cli:main"
+
+[dependency-groups]
+# `uv run ruff` / `uv run ty` / `uv run pytest` が使う。実行時には要らない
+dev = [
+  "ruff>=0.16",
+  "ty>=0.0.72",
+  "pytest>=8",
+  "pyyaml>=6",
+  # tests/config が 3.10 では tomllib の代わりに読む。ty は 3.10 を仮定して調べるので、3.11 以降の環境にも入れる
+  "tomli>=2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/autodev", "src/turnreview", "src/hud", "src/toolkit"]
+
+[tool.ruff]
+# src レイアウトのパッケージ（autodev・hud・turnreview）を first-party として import の並びを決める
+src = ["src", "tests"]
+# `requires-python` に合わせる
+target-version = "py310"
+line-length = 100
+exclude = [
+  # git worktree の実体。エージェントが作った他ブランチのチェックアウトが入っており、
+  # このリポジトリのソースではない（.gitignore でも追跡から外してある）
+  ".claude/worktrees",
+]
+
+[tool.ruff.lint]
+select = [
+  "E",    # pycodestyle（エラー）
+  "W",    # pycodestyle（警告）
+  "F",    # Pyflakes（未使用・未定義）
+  "I",    # import の並び
+  "UP",   # 新しい構文への追随（f-string など）
+  "B",    # bugbear（間違えやすい書き方）
+  "SIM",  # 単純化できる分岐・with
+  "PL",   # Pylint 由来
+  "RUF",  # ruff 固有
+]
+ignore = [
+  # 日本語のコメントと文字列を多く含むため、行長は formatter に任せて lint では見ない
+  "E501",
+  # 引数が多い関数を許す。argparse のサブコマンド定義で自然に増える
+  "PLR0913",
+  # マジックナンバーの比較を許す。終了コードの 0 / 1 を定数にしても読みやすくならない
+  "PLR2004",
+  # 全角の読点・括弧・コロンを「半角と紛らわしい文字」として弾くルール。このリポジトリは
+  # コメントもエラーメッセージも日本語で書く方針なので、当てると 272 件すべてが誤検出になる
+  "RUF001", # 文字列の中
+  "RUF002", # docstring の中
+  "RUF003", # コメントの中
+]
+
+[tool.ruff.lint.per-file-ignores]
+# lib/__init__.py は re-export だけを行うので、未使用 import に見える
+"**/lib/__init__.py" = ["F401"]
+# 検査の関数名を日本語で書くので、識別子の非 ASCII を弾く PLC2401 を検査だけ外す。
+# 落ちたときに pytest が出す名前だけで「何が壊れたか」が読める
+# （`test_2度目を忘れると落ちたままになる`）
+"tests/**" = ["PLC2401"]
+
+[tool.ty.environment]
+python-version = "3.10"
+
+[tool.ty.src]
+exclude = [".claude/worktrees"]
+
+[tool.pytest.ini_options]
+# 検査は `tests/` にだけ置く。`src/` と同じ形で、`tests/autodev/` が `src/autodev/` に当たる
+testpaths = ["tests"]
+# `tests/autodev/test_cli.py` と `tests/hud/test_cli.py` のように、別のディレクトリに同じ名前のテストがある。
+# importlib なら基底名がぶつからない。テストが import する補助のモジュール（`autodev_harness` など）は
+# `pythonpath` で見つける
+addopts = "--import-mode=importlib"
+pythonpath = ["tests", "tests/autodev", "tests/hud", "tests/turnreview"]

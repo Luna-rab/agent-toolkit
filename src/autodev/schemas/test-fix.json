@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["report", "reportReason", "comments", "notes"],
+  "properties": {
+    "report": { "enum": ["design-gap", "quick-check-failed", null] },
+    "reportReason": { "type": ["string", "null"], "minLength": 1 },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["finding", "body"],
+        "properties": {
+          "finding": { "type": "string", "pattern": "^R[1-9][0-9]*$" },
+          "body": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "notes": { "type": "string" }
+  }
+}

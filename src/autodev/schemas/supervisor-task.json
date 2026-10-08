@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision"],
+  "properties": {
+    "decision": { "enum": ["run-flow", "escalate"] },
+    "runFlow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["steps", "respondsTo"],
+      "properties": {
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage"],
+            "properties": {
+              "stage": {
+                "enum": [
+                  "TestGen",
+                  "ConfirmRed",
+                  "Impl",
+                  "ReviewLoop",
+                  "Gate",
+                  "WritePrBody",
+                  "ResolveConflict"
+                ]
+              },
+              "reviewers": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["first"],
+                "properties": {
+                  "first": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": { "enum": ["Review", "AdversarialReview"] }
+                  },
+                  "later": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": { "enum": ["Review", "AdversarialReview"] }
+                  }
+                }
+              },
+              "freshSession": { "type": "boolean" },
+              "instruction": { "type": ["string", "null"], "minLength": 1 }
+            }
+          }
+        },
+        "respondsTo": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z]+(?:/[a-z0-9]+)?#[1-9][0-9]*$"
+        }
+      }
+    },
+    "escalate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reason", "pointers", "hint", "source"],
+      "properties": {
+        "kind": { "enum": ["needs-replan", "needs-human"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "pointers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["taskDir", "result", "log", "tree", "session"],
+          "properties": {
+            "taskDir": { "type": ["string", "null"], "minLength": 1 },
+            "result": { "type": ["string", "null"], "minLength": 1 },
+            "log": { "type": ["string", "null"], "minLength": 1 },
+            "tree": { "type": ["string", "null"], "minLength": 1 },
+            "session": {
+              "type": ["string", "null"],
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        },
+        "hint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["findingIds", "stallCause", "designCause", "gateItems"],
+          "properties": {
+            "findingIds": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "pattern": "^(?:[RD][1-9][0-9]*|G-(?:no-open-findings|verify))$" }
+            },
+            "stallCause": { "enum": ["tests", "approach", "scope", "ambiguous", null] },
+            "designCause": { "enum": ["reverted", "ambiguous", null] },
+            "gateItems": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "commits",
+                  "no-open-findings",
+                  "reviewers-ran",
+                  "tests-unchanged",
+                  "untested-paths",
+                  "verify"
+                ]
+              }
+            }
+          }
+        },
+        "source": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z]+(?:/[a-z0-9]+)?#[1-9][0-9]*$"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["verdicts", "comments", "designCause"],
+  "properties": {
+    "verdicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["finding", "to", "comment"],
+        "properties": {
+          "finding": { "type": "string", "pattern": "^D[1-9][0-9]*$" },
+          "to": { "enum": ["open", "closed", "rejected"] },
+          "comment": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["finding", "body"],
+        "properties": {
+          "finding": { "type": "string", "pattern": "^D[1-9][0-9]*$" },
+          "body": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "designCause": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["kind", "revertedTo", "reason", "question"],
+      "properties": {
+        "kind": { "enum": ["reverted", "ambiguous"] },
+        "revertedTo": { "type": ["integer", "null"], "minimum": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "question": { "type": ["string", "null"], "minLength": 1 }
+      }
+    }
+  }
+}

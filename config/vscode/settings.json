@@ -1,0 +1,10 @@
+{
+  "terminal.integrated.profiles.linux": {
+    "autodev watch": {
+      "path": "zsh",
+      "args": ["-lic", "exec agent-hud watch"],
+      "icon": "checklist",
+      "overrideName": true
+    }
+  }
+}

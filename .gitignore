@@ -1,0 +1,53 @@
+# `/*` と `/.**` で全部無視してから、追跡するものを `!` で戻す方式。
+# 新しく追跡したいファイルは、ここに `!` で足さないと git に入らない。
+### all ignore ###
+/*
+/.**
+
+### not ignore ###
+# コード
+!/src
+!/src/**
+
+# ホームへ配る設定と指示
+!/config
+!/config/**
+
+# $HOME へ配るもののうち、移行前から残っているもの
+!/dist
+!/dist/**
+
+# 検査。配らない
+!/tests
+!/tests/**
+
+# Codex 用の設定と指示
+!/.codex
+!/.codex/**
+!/AGENTS.md
+
+# このリポジトリで作業するときだけ使う Claude Code の設定と道具。配らない
+!/.claude
+!/.claude/**
+
+# 上の `!` で復活した許可を打ち消し、生成物だけ再び無視する
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+# Claude Code が作る作業ツリー（git worktree の実体）。リポジトリの複製なのでコミットしない
+/.claude/worktrees/
+/.claude/settings.local.json
+/.claude/skills
+
+# ruff・ty・pytest の設定と、依存の固定
+!/pyproject.toml
+!/uv.lock
+
+!install.sh
+!/README.md
+!.gitignore
+!.gitkeep
+
+!/docs
+!/docs/**

@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["design", "codemap", "tasks", "quickChecks", "regressionTests", "decisions", "deferrals"],
+  "properties": {
+    "design": { "type": "string", "minLength": 1 },
+    "codemap": { "type": "string", "minLength": 1 },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "dod",
+          "acceptance",
+          "scope",
+          "entryPoints",
+          "boundary",
+          "taskTests",
+          "blockedBy"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^task[1-9][0-9]*$" },
+          "title": { "type": "string", "minLength": 1 },
+          "dod": { "type": "string" },
+          "acceptance": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "scope": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "entryPoints": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "boundary": { "type": "string" },
+          "taskTests": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "blockedBy": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^task[1-9][0-9]*$" }
+          }
+        }
+      }
+    },
+    "quickChecks": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "regressionTests": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "decisions": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "deferrals": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["verdicts", "comments", "stallCause", "stallReason"],
+  "properties": {
+    "verdicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["finding", "to", "comment", "target"],
+        "properties": {
+          "finding": { "type": "string", "pattern": "^R[1-9][0-9]*$" },
+          "to": { "enum": ["open", "closed", "rejected"] },
+          "comment": { "type": "string", "minLength": 1 },
+          "target": { "enum": ["supervisor", "impl", "tests", null] }
+        }
+      }
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["finding", "body"],
+        "properties": {
+          "finding": { "type": "string", "pattern": "^R[1-9][0-9]*$" },
+          "body": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "stallCause": { "enum": ["tests", "approach", "scope", "ambiguous", null] },
+    "stallReason": { "type": ["string", "null"], "minLength": 1 }
+  }
+}

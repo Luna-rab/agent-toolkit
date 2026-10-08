@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["report", "reportReason", "resolved"],
+  "properties": {
+    "report": { "enum": ["integration-failed", null] },
+    "reportReason": { "type": ["string", "null"], "minLength": 1 },
+    "resolved": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "how"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "how": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
