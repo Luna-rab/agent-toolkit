@@ -5,12 +5,11 @@ from __future__ import annotations
 import argparse
 from collections.abc import Callable
 
-from toolkit import doctor, hooks, install
+from toolkit import doctor, install
 
 #: サブコマンド名 → (説明, 引数を足す関数, 実行する関数)
 COMMANDS: dict[str, tuple[str, Callable[[argparse.ArgumentParser], None], Callable]] = {
     "doctor": ("依存の CLI と認証を確かめる", doctor.add_arguments, doctor.run),
-    "hook": ("エージェントのフックから呼ばれる", hooks.add_arguments, hooks.run),
     "install": ("config/ の中身をホームへ配る", install.add_arguments, install.run),
     "list": ("部品・プリセット・依存を一覧する", doctor.list_arguments, doctor.run_list),
 }

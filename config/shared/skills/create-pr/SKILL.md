@@ -32,7 +32,7 @@ argument-hint: "[base=<branch>] [head=<branch>] [title=<text>] [body-file=<path>
 呼び出しの例（stacked PR の土台を draft で作る）:
 
 ```
-/create-pr base=main head=stack/parser-fix--task-0 draft=true title="[autodev] fix: パーサの境界値を直す" body-file=/path/to/stack-pr-body.md
+/create-pr base=main head=stack/parser-fix--task-0 draft=true title="fix: パーサの境界値を直す" body-file=/path/to/stack-pr-body.md
 ```
 
 **渡された `base` を検証し直さない。** 呼び出し元が起点を決めているとき（stacked PR の土台に積むなど）、履歴から別の base を選ぶと PR が載る先が変わる。渡された `base` がリモートに存在しない場合だけ、作成を試みずに呼び出し元へエラーを返す。

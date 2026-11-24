@@ -28,29 +28,5 @@
     "typescript-lsp@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "php-lsp@claude-plugins-official": true
-  },
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "agent-toolkit hook stop --agent claude",
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "agent-toolkit hook subagent-stop --agent claude",
-            "timeout": 30
-          }
-        ]
-      }
-    ]
   }
 }

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from conftest import AUTODEV_PACKAGE, AUTODEV_SKILL, REPO_ROOT, SRC_ROOT
+from conftest import REPO_ROOT, SRC_ROOT
 
 REMOVED = [
     "dist/dot-claude/skills",
@@ -28,15 +28,12 @@ def test_旧いフックの入口のpyが無い():
 
 MOVED = [
     "config/shared/skills/stacked-pr/SKILL.md",
-    "config/shared/skills/autodev/SKILL.md",
     "config/shared/skills/create-pr/SKILL.md",
     "config/shared/skills/grill-me/SKILL.md",
     "config/claude/skills/editing-rules/SKILL.md",
     "config/claude/skills/editing-skills/SKILL.md",
-    "config/claude/hooks.json",
     "config/claude/hud.json",
     "config/presets/personal/claude/settings.json",
-    "config/vscode/settings.json",
 ]
 
 
@@ -45,17 +42,8 @@ def test_スキルと設定ファイルがconfigの下にある(path: str):
     assert (REPO_ROOT / path).is_file()
 
 
-def test_autodevのスキルにコードを置かない():
-    assert (AUTODEV_SKILL / "README.md").is_file()
-    assert list(AUTODEV_SKILL.rglob("*.py")) == []
-    assert not (AUTODEV_SKILL / "scripts").exists()
-
-
 def test_パッケージはsrcの下にあり旧い入口のスクリプトが無い():
-    assert (AUTODEV_PACKAGE / "__main__.py").is_file()
-    for package in ("autodev", "hud", "turnreview"):
+    assert sorted(p.name for p in SRC_ROOT.iterdir() if p.is_dir()) == ["hud", "toolkit"]
+    for package in ("hud", "toolkit"):
         assert (SRC_ROOT / package / "__init__.py").is_file(), package
     assert not (SRC_ROOT / "hud" / "statusline.py").exists()
-    assert not (SRC_ROOT / "turnreview" / "review-new-comments.py").exists()
-    assert not list(SRC_ROOT.rglob("autodev-watch.py"))
-    assert not list(SRC_ROOT.rglob("review-new-*.py"))
