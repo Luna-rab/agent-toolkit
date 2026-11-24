@@ -40,10 +40,9 @@ def test_実リポジトリのスキルが検査を通る(root: Path):
     assert [f.format() for f in failures] == []
 
 
-def test_実リポジトリのスキルは合わせて6つある():
+def test_実リポジトリのスキルは合わせて5つある():
     names = [p.name for root in SKILL_ROOTS for p in root.iterdir() if (p / "SKILL.md").is_file()]
     assert sorted(names) == [
-        "autodev",
         "create-pr",
         "editing-rules",
         "editing-skills",

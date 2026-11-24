@@ -86,11 +86,7 @@ def _installed(name: str, home: Path) -> bool:
 
 
 def _authenticated(name: str) -> bool:
-    commands = {
-        "gh": ["gh", "auth", "status"],
-        "claude": ["claude", "auth", "status"],
-        "codex": ["codex", "login", "status"],
-    }
+    commands = {"gh": ["gh", "auth", "status"]}
     return name in commands and _succeeds(commands[name])
 
 

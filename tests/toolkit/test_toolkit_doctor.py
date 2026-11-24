@@ -1,6 +1,6 @@
 """`agent-toolkit doctor` と `agent-toolkit list` を、偽物の CLI だけを置いた PATH で確かめる。
 
-実機の gh・claude・uv には触れない。HOME は一時ディレクトリ。
+実機の gh・uv には触れない。HOME は一時ディレクトリ。
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from toolkit import doctor
 from toolkit.catalog import Selection
 
 ENTRY = "import sys; from toolkit.cli import main; sys.exit(main(sys.argv[1:]))"
-COMPONENT_ORDER = ["instructions", "skills", "hooks", "hud", "vscode", "extras"]
+COMPONENT_ORDER = ["instructions", "skills", "hud", "extras"]
 
 
 @pytest.fixture
@@ -59,7 +59,6 @@ def full_path(bin_dir: Path) -> None:
     """必須の依存がすべて揃い、認証も通る PATH。"""
     fake(bin_dir, "uv", "exit 0")
     fake(bin_dir, "git", "exit 0")
-    fake(bin_dir, "claude", "exit 0")
     fake_gh(bin_dir)
 
 
@@ -139,42 +138,34 @@ def test_uv_missing_everywhere_returns_30(home, bin_dir):
     assert checks_of(done)["uv"]["installed"] is False
 
 
-def test_optional_dependencies_missing_or_unauthenticated_still_returns_0(home, bin_dir):
+def test_missing_optional_dependency_still_returns_0(home, bin_dir):
     full_path(bin_dir)
     done = doctor_cli(home, bin_dir, "doctor", "--json")
     assert done.returncode == 0, done.stderr
-    absent = checks_of(done)
-    for name in ("codex", "node"):
-        assert absent[name]["required"] is False
-        assert absent[name]["installed"] is False
+    node = checks_of(done)["node"]
+    assert node["required"] is False
+    assert node["installed"] is False
 
-    fake(bin_dir, "codex", "exit 1")
     fake(bin_dir, "node", "exit 0")
     done = doctor_cli(home, bin_dir, "doctor", "--json")
     assert done.returncode == 0, done.stderr
-    present = checks_of(done)
-    assert present["codex"]["installed"] is True
-    assert present["codex"]["authenticated"] is False
-    assert present["codex"]["required"] is False
-    assert present["node"]["installed"] is True
+    assert checks_of(done)["node"]["installed"] is True
 
 
-def test_skip_hooks_drops_hooks_from_needed_by(home, bin_dir):
+def test_skip_skills_drops_skills_from_needed_by(home, bin_dir):
     full_path(bin_dir)
     default = checks_of(doctor_cli(home, bin_dir, "doctor", "--json"))
-    assert default["codex"]["needed_by"] == ["skills", "hooks"]
+    assert default["git"]["needed_by"] == ["skills", "hud"]
 
-    skipped = checks_of(doctor_cli(home, bin_dir, "doctor", "--skip", "hooks", "--json"))
-    assert skipped["codex"]["needed_by"] == ["skills"]
+    skipped = checks_of(doctor_cli(home, bin_dir, "doctor", "--skip", "skills", "--json"))
+    assert skipped["git"]["needed_by"] == ["hud"]
 
 
-def test_only_hud_lists_neither_gh_nor_claude(home, bin_dir):
+def test_only_hud_does_not_list_gh(home, bin_dir):
     full_path(bin_dir)
     done = doctor_cli(home, bin_dir, "doctor", "--only", "hud", "--json")
     assert done.returncode == 0, done.stderr
-    names = checks_of(done)
-    assert "gh" not in names
-    assert "claude" not in names
+    assert "gh" not in checks_of(done)
 
 
 def test_doctor_does_not_wait_on_stdin_and_disables_gh_prompt(home, bin_dir):
@@ -244,13 +235,3 @@ def test_list_plain_names_every_component(home, bin_dir):
     assert done.returncode == 0, done.stderr
     for name in COMPONENT_ORDER:
         assert name in done.stdout
-
-
-def test_missing_copilot_is_optional_and_does_not_fail_doctor(home, bin_dir):
-    full_path(bin_dir)
-    done = doctor_cli(home, bin_dir, "doctor", "--json")
-    assert done.returncode == 0, done.stderr
-    copilot = checks_of(done)["copilot"]
-    assert copilot["required"] is False
-    assert copilot["installed"] is False
-    assert json.loads(done.stdout)["status"] == 0

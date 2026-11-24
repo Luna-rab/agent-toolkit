@@ -1,4 +1,4 @@
-# agent-toolkit のパッケージ（autodev・turnreview・hud）と、開発の検査（ruff・ty・pytest）の設定。
+# agent-toolkit のパッケージ（hud・toolkit）と、開発の検査（ruff・ty・pytest）の設定。
 #
 # 使い方:
 #   uv run pytest                テストを流す
@@ -14,16 +14,13 @@ build-backend = "hatchling.build"
 [project]
 name = "agent-toolkit"
 version = "0"
-description = "AI コーディングエージェントの設定・フック・autodev・HUD"
+description = "AI コーディングエージェントの設定・HUD"
 requires-python = ">=3.10"
 dependencies = [
   "rich>=13",
-  "textual>=0.80",
-  "tree-sitter-language-pack>=0.13",
 ]
 
 [project.scripts]
-autodev = "autodev.cli:main"
 agent-hud = "hud.cli:main"
 agent-toolkit = "toolkit.cli:main"
 
@@ -39,10 +36,10 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/autodev", "src/turnreview", "src/hud", "src/toolkit"]
+packages = ["src/hud", "src/toolkit"]
 
 [tool.ruff]
-# src レイアウトのパッケージ（autodev・hud・turnreview）を first-party として import の並びを決める
+# src レイアウトのパッケージ（hud・toolkit）を first-party として import の並びを決める
 src = ["src", "tests"]
 # `requires-python` に合わせる
 target-version = "py310"
@@ -94,10 +91,9 @@ python-version = "3.10"
 exclude = [".claude/worktrees"]
 
 [tool.pytest.ini_options]
-# 検査は `tests/` にだけ置く。`src/` と同じ形で、`tests/autodev/` が `src/autodev/` に当たる
+# 検査は `tests/` にだけ置く。`src/` と同じ形で、`tests/hud/` が `src/hud/` に当たる
 testpaths = ["tests"]
-# `tests/autodev/test_cli.py` と `tests/hud/test_cli.py` のように、別のディレクトリに同じ名前のテストがある。
-# importlib なら基底名がぶつからない。テストが import する補助のモジュール（`autodev_harness` など）は
-# `pythonpath` で見つける
+# importlib なら、別のディレクトリにある同じ名前のテストの基底名がぶつからない。
+# テストが import する補助のモジュール（`hud_samples` など）は `pythonpath` で見つける
 addopts = "--import-mode=importlib"
-pythonpath = ["tests", "tests/autodev", "tests/hud", "tests/turnreview"]
+pythonpath = ["tests", "tests/hud"]

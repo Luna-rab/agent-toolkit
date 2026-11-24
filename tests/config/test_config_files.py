@@ -17,14 +17,6 @@ from conftest import REPO_ROOT, SRC_ROOT
 CONFIG = REPO_ROOT / "config"
 
 
-def _commands(hooks: dict, event: str) -> list[str]:
-    return [h["command"] for group in hooks[event] for h in group["hooks"]]
-
-
-def _all_commands(hooks: dict) -> list[str]:
-    return [c for event in hooks for c in _commands(hooks, event)]
-
-
 def _load(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -32,29 +24,19 @@ def _load(path):
 PRESET = CONFIG / "presets" / "personal" / "claude" / "settings.json"
 
 
-def test_claudeのhooksはフックをコマンド名で登録する():
-    hooks = _load(CONFIG / "claude" / "hooks.json")["hooks"]
-    assert set(hooks) == {"Stop", "SubagentStop"}
-    assert _commands(hooks, "Stop") == ["agent-toolkit hook stop --agent claude"]
-    assert _commands(hooks, "SubagentStop") == ["agent-toolkit hook subagent-stop --agent claude"]
-
-
 def test_claudeのhudのstatuslineはコマンド名():
     settings = _load(CONFIG / "claude" / "hud.json")
     assert settings["statusLine"]["command"] == "agent-hud statusline"
 
 
-def test_claudeのコマンドにパスが無い():
-    hooks = _load(CONFIG / "claude" / "hooks.json")["hooks"]
-    hud = _load(CONFIG / "claude" / "hud.json")
-    commands = [*_all_commands(hooks), hud["statusLine"]["command"]]
-    assert commands
-    assert all("/" not in c for c in commands)
+def test_フックを配らない():
+    assert not (CONFIG / "claude" / "hooks.json").exists()
+    assert not (CONFIG / "codex" / "hooks.json").exists()
+    assert "hooks" not in _load(PRESET)
 
 
 def test_claudeの設定は機能ごとのファイルと個人プリセットに分かれる():
     assert not (CONFIG / "claude" / "settings.json").exists()
-    assert set(_load(CONFIG / "claude" / "hooks.json")) <= {"$schema", "hooks"}
     assert set(_load(CONFIG / "claude" / "hud.json")) <= {"$schema", "statusLine"}
     assert set(_load(PRESET)) == {
         "$schema",
@@ -65,24 +47,6 @@ def test_claudeの設定は機能ごとのファイルと個人プリセット�
         "extraKnownMarketplaces",
         "enabledPlugins",
     }
-
-
-def test_codexのhooksはStopとPreToolUse():
-    hooks = _load(CONFIG / "codex" / "hooks.json")["hooks"]
-    assert set(hooks) == {"Stop", "PreToolUse"}
-    assert _commands(hooks, "Stop") == ["agent-toolkit hook stop --agent codex"]
-    assert _commands(hooks, "PreToolUse") == [
-        '[ -z "$AUTODEV_GUARD" ] || autodev hook deny-writes || exit 2',
-        '[ -z "$AUTODEV_GUARD" ] || autodev hook park-on-ask || exit 2',
-    ]
-
-
-def test_vscodeのautodev_watchはagent_hudを実行する():
-    settings = _load(CONFIG / "vscode" / "settings.json")
-    profile = settings["terminal.integrated.profiles.linux"]["autodev watch"]
-    joined = " ".join(profile["args"])
-    assert "agent-hud watch" in joined
-    assert "~/.claude/scripts" not in joined
 
 
 @pytest.mark.parametrize("name", ["medium-worker", "medium-reviewer"])

@@ -46,7 +46,7 @@ class Selection:
 
 
 CLI_DEPENDENCIES: tuple[Dependency, ...] = (
-    Dependency("uv", True, False, "autodev・agent-hud・agent-toolkit の導入"),
+    Dependency("uv", True, False, "agent-hud・agent-toolkit の導入"),
 )
 
 COMPONENTS: tuple[Component, ...] = (
@@ -59,39 +59,16 @@ COMPONENTS: tuple[Component, ...] = (
         "skills",
         "スキルの symlink を張り、行き先の無いリンクを片付ける",
         (
-            Dependency("git", True, False, "autodev が worktree とブランチを扱う"),
-            Dependency("claude", True, True, "autodev が Claude Code を呼ぶ"),
-            Dependency(
-                "codex",
-                False,
-                True,
-                "autodev が Codex CLI を呼ぶ（models.json で codex を選んだときだけ）",
-            ),
-            Dependency(
-                "copilot",
-                False,
-                False,
-                "autodev が Copilot CLI を呼ぶ（models.json で copilot を選んだときだけ）",
-            ),
-            Dependency("gh", True, True, "autodev が GitHub を触る"),
+            Dependency("git", True, False, "create-pr・stacked-pr がブランチを扱う"),
+            Dependency("gh", True, True, "create-pr・stacked-pr が GitHub を触る"),
             Dependency("gh-stack", True, False, "stacked PR を作る"),
             Dependency("node", False, False, "archify スキルが使う"),
         ),
     ),
     Component(
-        "hooks",
-        "Claude と Codex のフックを配る",
-        (Dependency("codex", False, True, "Codex のフックが動く"),),
-    ),
-    Component(
         "hud",
         "Claude の statusLine（agent-hud）を配る",
         (Dependency("git", False, False, "ブランチ名を表示する"),),
-    ),
-    Component(
-        "vscode",
-        "VS Code の設定を配る（~/.vscode-server があるときだけ）",
-        (),
     ),
     Component(
         "extras",
@@ -165,30 +142,9 @@ def placements(repo: Path, home: Path, chosen: Selection) -> list[Placement]:
             table.append(Placement(skill, claude / "skills" / skill.name, "link", "skills"))
         for skill in skill_dirs(config / "claude" / "skills"):
             table.append(Placement(skill, claude / "skills" / skill.name, "link", "skills"))
-    if "hooks" in chosen.components:
-        table.append(
-            Placement(config / "claude" / "hooks.json", claude_settings, "merge_json", "hooks")
-        )
-        table.append(
-            Placement(
-                config / "codex" / "hooks.json",
-                home / ".codex" / "hooks.json",
-                "merge_json",
-                "hooks",
-            )
-        )
     if "hud" in chosen.components:
         table.append(
             Placement(config / "claude" / "hud.json", claude_settings, "merge_json", "hud")
-        )
-    if "vscode" in chosen.components and (home / ".vscode-server").is_dir():
-        table.append(
-            Placement(
-                config / "vscode" / "settings.json",
-                home / ".vscode-server" / "data" / "Machine" / "settings.json",
-                "merge_json",
-                "vscode",
-            )
         )
     if chosen.preset == "personal":
         table.append(

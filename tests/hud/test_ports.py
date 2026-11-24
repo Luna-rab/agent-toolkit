@@ -1,15 +1,14 @@
-"""外とのやり取り（`hud/ports/git.py`・`hud/ports/autodev.py`）。本物の git と、偽の autodev の入口で確かめる。"""
+"""外とのやり取り（`hud/ports/git.py`・`hud/ports/usage.py`）。本物の git で確かめる。"""
 
 from __future__ import annotations
 
 import json
 import subprocess
-import sys
 
-from hud_samples import calls, status, write_fake_entry, write_usage
 from hud_samples import usage as sample_usage
+from hud_samples import write_usage
 
-from hud.ports import autodev, git, usage
+from hud.ports import git, usage
 
 
 def test_git_statusの出力を返しgitの外ならNone(tmp_path):
@@ -20,59 +19,6 @@ def test_git_statusの出力を返しgitの外ならNone(tmp_path):
     out = git.status(str(repo))
     assert out is not None and "# branch.head main" in out and "? b" in out
     assert git.status(str(tmp_path)) is None
-
-
-def test_入口の指定が無ければインストールされたautodevをモジュールの実行で呼ぶ(monkeypatch):
-    monkeypatch.delenv(autodev.ENTRY_ENV, raising=False)
-    assert autodev.command() == [sys.executable, "-I", "-m", "autodev"]
-
-
-def test_入口の指定があればそのファイルをそのまま実行する(monkeypatch):
-    monkeypatch.setenv(autodev.ENTRY_ENV, "/x/fake.py")
-    assert autodev.command() == [sys.executable, "/x/fake.py"]
-
-
-def test_インストールされたautodevのstatusを呼べる(tmp_path, monkeypatch):
-    """本物の入口（`python -I -m autodev`）を、ラン記録の無い空の状態ディレクトリで呼ぶ。"""
-    monkeypatch.delenv(autodev.ENTRY_ENV, raising=False)
-    monkeypatch.setenv("AUTODEV_STATE_DIR", str(tmp_path / "state"))
-    reply = autodev.statuses()
-    assert (reply.code, reply.data) == (0, [])
-
-
-def fake_env(tmp_path, monkeypatch, statuses: list[dict]) -> None:
-    for key, value in write_fake_entry(tmp_path, statuses).items():
-        monkeypatch.setenv(key, value)
-
-
-def test_一覧はstatus_jsonを名前なしで呼ぶ(tmp_path, monkeypatch):
-    fake_env(tmp_path, monkeypatch, [status(), {"name": "old", "error": "ValueError: x"}])
-    reply = autodev.statuses()
-    assert (reply.code, [st["name"] for st in reply.data]) == (0, ["add-cache", "old"])
-    assert calls(tmp_path) == ["status --json"]
-
-
-def test_1つのランはnameを付けて呼びランが無ければ終了コード5(tmp_path, monkeypatch):
-    fake_env(tmp_path, monkeypatch, [status()])
-    assert autodev.status("add-cache").data["name"] == "add-cache"
-    missing = autodev.status("nope")
-    assert (missing.code, missing.data, missing.message) == (5, None, "autodev: そのランが無い")
-    assert calls(tmp_path) == ["status --json --name add-cache", "status --json --name nope"]
-
-
-def test_入口が無い_JSONでない_返らないときも落ちない(tmp_path, monkeypatch):
-    monkeypatch.setenv(autodev.ENTRY_ENV, str(tmp_path / "none.py"))
-    missing = autodev.statuses()
-    assert missing.code != 0
-    assert missing.data is None
-    entry = tmp_path / "noisy.py"
-    entry.write_text("print('not json')", encoding="utf-8")
-    monkeypatch.setenv(autodev.ENTRY_ENV, str(entry))
-    assert (autodev.statuses().code, autodev.statuses().data) == (0, None)
-    entry.write_text("import time; time.sleep(5)", encoding="utf-8")
-    monkeypatch.setattr(autodev, "TIMEOUT", 0.2)
-    slow = autodev.statuses()
-    assert slow.code is None and "返らなかった" in slow.message
 
 
 def usage_env(tmp_path, monkeypatch, fetched) -> list[str]:

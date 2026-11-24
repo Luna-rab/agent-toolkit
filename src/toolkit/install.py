@@ -24,7 +24,7 @@ from toolkit.catalog import (
     placements,
     selection,
 )
-from toolkit.merge import merge_settings
+from toolkit.merge import deep_merge, drop_managed_hooks
 
 #: 手順の失敗を表す終了コード
 EXIT_STEP_FAILED = 20
@@ -92,26 +92,58 @@ def merge_json(sources: list[Path], target: Path, home: Path) -> None:
         if not isinstance(part, dict):
             warn(f"{source} が JSON のオブジェクトではない。{target} は触らない")
             return
-        fragment = merge_settings(fragment, part)
+        fragment = deep_merge(fragment, part)
     if target.is_symlink() and not target.exists():
         target.unlink()
     if target.exists():
-        try:
-            current = json.loads(target.read_text(encoding="utf-8"))
-        except ValueError:
-            warn(f"{target} は JSON として読めない（コメント入りなど）。触らない")
+        current = read_settings(target)
+        if current is None:
             return
-        if not isinstance(current, dict):
-            warn(f"{target} が JSON のオブジェクトではない。触らない")
-            return
-        merged = merge_settings(current, fragment)
+        merged = deep_merge(current, fragment)
         if merged == current and not target.is_symlink():
             return
         backup(target, home, copy=True)
     else:
         merged = fragment
         target.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(merged, indent=2, ensure_ascii=False) + "\n"
+    write_json(target, merged)
+    print(f"merge {', '.join(str(s) for s in sources)} into {target}")
+
+
+def read_settings(target: Path) -> dict | None:
+    """配置先の JSON。読めない・オブジェクトでないときは警告して None を返す。"""
+    try:
+        current = json.loads(target.read_text(encoding="utf-8"))
+    except ValueError:
+        warn(f"{target} は JSON として読めない（コメント入りなど）。触らない")
+        return None
+    if not isinstance(current, dict):
+        warn(f"{target} が JSON のオブジェクトではない。触らない")
+        return None
+    return current
+
+
+def remove_managed_hooks(target: Path, home: Path) -> None:
+    """以前の agent-toolkit が入れたフック（turnreview・autodev のガード）を配置先から除く。
+
+    コマンドが無くなったので、残すとエージェントが止まるたびにフックが失敗する。
+    """
+    if not target.is_file():
+        return
+    current = read_settings(target)
+    if current is None:
+        return
+    cleaned = drop_managed_hooks(current)
+    if cleaned == current:
+        return
+    backup(target, home, copy=True)
+    write_json(target, cleaned)
+    print(f"remove old hooks from {target}")
+
+
+def write_json(target: Path, data: dict) -> None:
+    """一時ファイルに書いてから置き換える。既存のファイルの権限は引き継ぐ。"""
+    text = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     fd, tmp = tempfile.mkstemp(dir=target.parent, prefix=f".{target.name}.")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
@@ -124,7 +156,6 @@ def merge_json(sources: list[Path], target: Path, home: Path) -> None:
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise
-    print(f"merge {', '.join(str(s) for s in sources)} into {target}")
 
 
 def ensure_real_dir(path: Path) -> None:
@@ -229,6 +260,11 @@ def run_install(repo: Path, home: Path, offline: bool, chosen: Selection) -> int
         for skills in skills_dirs:
             step(f"{skills} の用意", lambda skills=skills: ensure_real_dir(skills))
     step("旧リンクの移行", lambda: remove_old_links(claude))
+    for settings in (claude / "settings.json", home / ".codex" / "hooks.json"):
+        step(
+            f"{settings} の旧フックの片付け",
+            lambda settings=settings: remove_managed_hooks(settings, home),
+        )
     merges: dict[Path, list[Path]] = {}
     for placement in placements(repo, home, chosen):
         if placement.method == "link":

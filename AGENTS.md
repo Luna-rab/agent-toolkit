@@ -1,18 +1,19 @@
 # このリポジトリでの開発ガイド
 
-Claude Code と Codex 向けの設定・Skills・フック・autodev・HUD を管理する。構成とインストール手順は
+Claude Code と Codex 向けの設定・Skills・HUD を管理する。構成とインストール手順は
 [README.md](README.md)。
 
 ## 置き場所の決まり
 
 - コードは `src/`、ホームへ配る設定と指示は `config/`。`config/` に Python を置かず、`src/` に SKILL.md・settings.json・hooks.json・AGENTS.md を置かない
-- テストは `tests/` に `src/` と同じ形で置く（`tests/{autodev,turnreview,hud,toolkit,config}/`）。`tests/conftest.py` で `sys.path` を足さない（パッケージはインストール済み）
+- テストは `tests/` に `src/` と同じ形で置く（`tests/{hud,toolkit,config}/`）。`tests/conftest.py` で `sys.path` を足さない（パッケージはインストール済み）
 - 依存は `pyproject.toml` に宣言する。PEP 723 の `# /// script` は使わない
-- フックと statusline は、ファイルパスではなくコマンド（`agent-toolkit hook <イベント> --agent <claude|codex>`、`agent-hud statusline`）で登録する。Codex はフック定義のハッシュで信頼を記録するので、実装を変えても定義が変わらない形にする
-- スキルにコードを置かない。スキルは PATH のコマンド（`autodev` など）を呼ぶ
+- statusline は、ファイルパスではなくコマンド（`agent-hud statusline`）で登録する
+- フックを配らない。エージェントは素の状態に近いまま使う
+- スキルにコードを置かない。スキルは PATH のコマンドを呼ぶ
 - 配置の表は `src/toolkit/catalog.py`、実行は `src/toolkit/install.py`。配置先を足したら両方とテスト（`tests/toolkit/test_toolkit_install.py`）を直す
-- 個人の設定（モデル・権限・プラグインなど）は `config/presets/<名前>/` に置く。機能の設定（`config/claude/hooks.json`・`hud.json`）に混ぜない
-- 資格情報・history・autodev のラン記録をコミットしない
+- 個人の設定（モデル・権限・プラグインなど）は `config/presets/<名前>/` に置く。機能の設定（`config/claude/hud.json`）に混ぜない
+- 資格情報・history をコミットしない
 
 ## 検査
 

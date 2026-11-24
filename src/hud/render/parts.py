@@ -72,9 +72,3 @@ def fit(parts: list[Part], width: int) -> Text:
         drop = min(range(len(live)), key=lambda i: (live[i].keep, -i))
         del live[drop]
     return joined(live)
-
-
-def clip(text: Text, width: int, *, pad: bool = False) -> Text:
-    out = text.copy()
-    out.truncate(width, overflow="ellipsis", pad=pad)
-    return out
